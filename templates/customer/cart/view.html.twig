@@ -106,95 +106,103 @@
 
         <!-- Orders Tab -->
         <div class="tab-pane fade" id="orders" role="tabpanel" aria-labelledby="orders-tab">
-            <h2>My Orders</h2>
+            <h2>My Orders <span class="badge bg-info" id="refresh-indicator" style="display:none;">Refreshing...</span></h2>
             
-            {% if commandes is empty %}
-                <div class="alert alert-info">
-                    You haven't placed any orders yet.
-                    <a href="{{ path('app_customer_menu') }}" class="btn btn-primary ms-2">Go to Menu</a>
-                </div>
-            {% else %}
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Order ID</th>
-                                <th>Date</th>
-                                <th>Status</th>
-                                <th>Total</th>
-                                <th>Items</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for commande in commandes %}
+            <div id="orders-container">
+                {% if commandes is empty %}
+                    <div class="alert alert-info">
+                        You haven't placed any orders yet.
+                        <a href="{{ path('app_customer_menu') }}" class="btn btn-primary ms-2">Go to Menu</a>
+                    </div>
+                {% else %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
                                 <tr>
-                                    <td><strong>#{{ commande.id }}</strong></td>
-                                    <td>{{ commande.dateHeure|date('d/m/Y H:i') }}</td>
-                                    <td>
-                                        {% if commande.statut == 'pending' %}
-                                            <span class="badge bg-warning text-dark">Pending</span>
-                                        {% elseif commande.statut == 'completed' %}
-                                            <span class="badge bg-success">Completed</span>
-                                        {% elseif commande.statut == 'cancelled' %}
-                                            <span class="badge bg-danger">Cancelled</span>
-                                        {% else %}
-                                            <span class="badge bg-secondary">{{ commande.statut }}</span>
-                                        {% endif %}
-                                    </td>
-                                    <td><strong>€{{ commande.total|number_format(2, '.', ',') }}</strong></td>
-                                    <td>
-                                        <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#orderModal{{ commande.id }}">
-                                            View Items
-                                        </button>
-                                    </td>
-                                    <td>
-                                        <button class="btn btn-sm btn-primary">Reorder</button>
-                                    </td>
+                                    <th>Order ID</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Total</th>
+                                    <th>Items</th>
                                 </tr>
+                            </thead>
+                            <tbody id="orders-tbody">
+                                {% for commande in commandes %}
+                                    <tr class="order-row" data-order-id="{{ commande.id }}">
+                                        <td><strong>#{{ commande.id }}</strong></td>
+                                        <td>{{ commande.dateHeure|date('d/m/Y H:i') }}</td>
+                                        <td>
+                                            <span class="status-badge" data-status="{{ commande.statut }}">
+                                                {% if commande.statut == 'pending' %}
+                                                    <span class="badge bg-danger">Pending</span>
+                                                {% elseif commande.statut == 'Order Confirmed' %}
+                                                    <span class="badge bg-warning text-dark">Order Confirmed</span>
+                                                {% elseif commande.statut == 'Preparing' %}
+                                                    <span class="badge bg-success">Preparing</span>
+                                                {% elseif commande.statut == 'Ready for Delivery' %}
+                                                    <span class="badge bg-info">Ready for Delivery</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">{{ commande.statut }}</span>
+                                                {% endif %}
+                                            </span>
+                                        </td>
+                                        <td><strong>€{{ commande.total|number_format(2, '.', ',') }}</strong></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-info view-items-btn" data-order-id="{{ commande.id }}">
+                                                View Items
+                                            </button>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
 
-                                <!-- Modal for order details -->
-                                <div class="modal fade" id="orderModal{{ commande.id }}" tabindex="-1" aria-hidden="true">
-                                    <div class="modal-dialog modal-lg">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title">Order #{{ commande.id }} Details</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <table class="table">
-                                                    <thead>
+                    <!-- Modals container -->
+                    <div id="modals-container">
+                        {% for commande in commandes %}
+                            <!-- Modal for order details -->
+                            <div class="modal fade" id="orderModal{{ commande.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Order #{{ commande.id }} Details</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <table class="table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Dish</th>
+                                                        <th>Price</th>
+                                                        <th>Quantity</th>
+                                                        <th>Subtotal</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for ligneCommande in commande.ligneCommandes %}
                                                         <tr>
-                                                            <th>Dish</th>
-                                                            <th>Price</th>
-                                                            <th>Quantity</th>
-                                                            <th>Subtotal</th>
+                                                            <td>{{ ligneCommande.plat.nomPlat }}</td>
+                                                            <td>€{{ ligneCommande.plat.prix|number_format(2, '.', ',') }}</td>
+                                                            <td>{{ ligneCommande.quantite }}</td>
+                                                            <td>€{{ (ligneCommande.plat.prix * ligneCommande.quantite)|number_format(2, '.', ',') }}</td>
                                                         </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {% for ligneCommande in commande.ligneCommandes %}
-                                                            <tr>
-                                                                <td>{{ ligneCommande.plat.nomPlat }}</td>
-                                                                <td>€{{ ligneCommande.plat.prix|number_format(2, '.', ',') }}</td>
-                                                                <td>{{ ligneCommande.quantite }}</td>
-                                                                <td>€{{ (ligneCommande.plat.prix * ligneCommande.quantite)|number_format(2, '.', ',') }}</td>
-                                                            </tr>
-                                                        {% endfor %}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <strong>Total: €{{ commande.total|number_format(2, '.', ',') }}</strong>
-                                            </div>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <strong>Total: €{{ commande.total|number_format(2, '.', ',') }}</strong>
                                         </div>
                                     </div>
                                 </div>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
         </div>
+
     </div>
 </div>
 
@@ -202,6 +210,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const removeButtons = document.querySelectorAll('.remove-item');
     const checkoutBtn = document.getElementById('checkout-btn');
+    const ordersContainer = document.getElementById('orders-container');
 
     removeButtons.forEach(button => {
         button.addEventListener('click', function() {
@@ -239,23 +248,58 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Auto-refresh orders every 5 seconds
+    // Auto-refresh orders every 3 seconds from API
     setInterval(function() {
-        const ordersTab = document.getElementById('orders');
-        if (ordersTab) {
-            fetch(window.location.href)
-                .then(response => response.text())
-                .then(html => {
-                    const parser = new DOMParser();
-                    const newDoc = parser.parseFromString(html, 'text/html');
-                    const newOrdersTab = newDoc.getElementById('orders');
-                    if (newOrdersTab) {
-                        ordersTab.innerHTML = newOrdersTab.innerHTML;
-                    }
+        refreshOrders();
+    }, 3000);
+
+    function refreshOrders() {
+        if (document.getElementById('orders').classList.contains('active')) {
+            fetch('{{ path('app_customer_api_orders') }}')
+                .then(response => response.json())
+                .then(data => {
+                    updateOrdersUI(data.orders);
                 })
-                .catch(error => console.error('Error refreshing orders:', error));
+                .catch(error => console.error('Error fetching orders:', error));
         }
-    }, 5000);
+    }
+
+    function updateOrdersUI(orders) {
+        const tbody = document.getElementById('orders-tbody');
+        if (!tbody) return;
+
+        orders.forEach(order => {
+            const row = document.querySelector(`tr.order-row[data-order-id="${order.id}"]`);
+            if (row) {
+                // Update status badge
+                const statusBadge = row.querySelector('.status-badge');
+                const newBadgeHTML = getStatusBadgeHTML(order.status);
+                statusBadge.innerHTML = newBadgeHTML;
+            }
+        });
+    }
+
+    function getStatusBadgeHTML(status) {
+        const statusMap = {
+            'pending': '<span class="badge bg-danger">Pending</span>',
+            'Order Confirmed': '<span class="badge bg-warning text-dark">Order Confirmed</span>',
+            'Preparing': '<span class="badge bg-success">Preparing</span>',
+            'Ready for Delivery': '<span class="badge bg-info">Ready for Delivery</span>'
+        };
+        return statusMap[status] || `<span class="badge bg-secondary">${status}</span>`;
+    }
+
+    // Add event listener for view items buttons
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('view-items-btn')) {
+            const orderId = e.target.dataset.orderId;
+            const modal = document.getElementById('orderModal' + orderId);
+            if (modal) {
+                const bsModal = new bootstrap.Modal(modal);
+                bsModal.show();
+            }
+        }
+    });
 
     function updateTotal() {
         let total = 0;

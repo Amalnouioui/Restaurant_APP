@@ -28,13 +28,51 @@ final class CartController extends AbstractController
         $client = !empty($clients) ? $clients[0] : null;
         
         // Get all commands for this client from database
-        $commandes = $client ? $this->commandeRepository->findBy(['client' => $client]) : [];
+        $commandes = $client ? $this->commandeRepository->findBy(['client' => $client], ['dateHeure' => 'DESC']) : [];
         
         return $this->render('customer/cart/view.html.twig', [
             'cart' => $sessionCart,
             'commandes' => $commandes,
             'client' => $client,
         ]);
+    }
+
+    #[Route('/api/orders', name: 'app_customer_api_orders', methods: ['GET'])]
+    public function getOrders(): Response
+    {
+        // Get the first client
+        $clients = $this->clientRepository->findAll();
+        $client = !empty($clients) ? $clients[0] : null;
+        
+        if (!$client) {
+            return $this->json(['orders' => []]);
+        }
+        
+        // Get all commands for this client from database
+        $commandes = $this->commandeRepository->findBy(['client' => $client], ['dateHeure' => 'DESC']);
+        
+        $ordersData = [];
+        foreach ($commandes as $commande) {
+            $items = [];
+            foreach ($commande->getLigneCommandes() as $ligneCommande) {
+                $items[] = [
+                    'dishName' => $ligneCommande->getPlat()->getNomPlat(),
+                    'price' => $ligneCommande->getPlat()->getPrix(),
+                    'quantity' => $ligneCommande->getQuantite(),
+                    'subtotal' => $ligneCommande->getPlat()->getPrix() * $ligneCommande->getQuantite(),
+                ];
+            }
+            
+            $ordersData[] = [
+                'id' => $commande->getId(),
+                'date' => $commande->getDateHeure()->format('d/m/Y H:i'),
+                'status' => $commande->getStatut(),
+                'total' => $commande->getTotal(),
+                'items' => $items,
+            ];
+        }
+        
+        return $this->json(['orders' => $ordersData]);
     }
 
     #[Route('/add/{platId}', name: 'app_customer_cart_add')]
@@ -49,4 +87,5 @@ final class CartController extends AbstractController
         return $this->render('customer/cart/checkout.html.twig');
     }
 }
+
 
