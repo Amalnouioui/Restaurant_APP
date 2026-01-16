@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Add New Dish{% endblock %}
+
+{% block body %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow-lg">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0">🍽️ Add New Dish</h3>
+            </div>
+            <div class="card-body p-4">
+                {{ include('plat/_form.html.twig') }}
+            </div>
+            <div class="card-footer bg-light">
+                <a href="{{ path('app_plat_index') }}" class="btn btn-secondary">
+                    ← Back to Dishes
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

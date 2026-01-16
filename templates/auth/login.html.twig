@@ -1,0 +1,63 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Login - Restaurant{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-5">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white text-center">
+                    <h3 class="mb-0">🔐 Customer Login</h3>
+                </div>
+                <div class="card-body p-4">
+                    <form id="loginForm" onsubmit="handleLogin(event)">
+                        <div class="mb-3">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="email" placeholder="your@email.com" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" placeholder="Enter your password" required>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">Login</button>
+                        </div>
+                    </form>
+
+                    <hr>
+
+                    <p class="text-center">Don't have an account? 
+                        <a href="{{ path('app_register') }}" class="text-primary fw-bold">Register here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function handleLogin(event) {
+    event.preventDefault();
+    
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    // Simple validation - in real app, validate on server
+    if (email && password.length >= 6) {
+        // Store user info in localStorage
+        localStorage.setItem('user', JSON.stringify({
+            email: email,
+            name: email.split('@')[0],
+            loggedIn: true,
+            loginTime: new Date().toISOString()
+        }));
+        
+        // Redirect to menu
+        window.location.href = "{{ path('app_customer_menu') }}";
+    } else {
+        alert('Invalid email or password (minimum 6 characters)');
+    }
+}
+</script>
+{% endblock %}

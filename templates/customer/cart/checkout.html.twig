@@ -1,0 +1,136 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Checkout - Restaurant{% endblock %}
+
+{% block body %}
+<div class="container py-4">
+    <h1>💳 Checkout</h1>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Delivery Address -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">📍 Delivery Address</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">First Name</label>
+                            <input type="text" class="form-control" placeholder="Enter your first name">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" class="form-control" placeholder="Enter your last name">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Street Address</label>
+                        <input type="text" class="form-control" placeholder="123 Main Street">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">City</label>
+                            <input type="text" class="form-control" placeholder="New York">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Zip Code</label>
+                            <input type="text" class="form-control" placeholder="10001">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">💳 Payment Method</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="payment" id="payment1" checked>
+                        <label class="form-check-label" for="payment1">
+                            <strong>Credit Card</strong>
+                        </label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Card Number</label>
+                        <input type="text" class="form-control" placeholder="1234 5678 9012 3456">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Expiry Date</label>
+                            <input type="text" class="form-control" placeholder="MM/YY">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">CVV</label>
+                            <input type="text" class="form-control" placeholder="123">
+                        </div>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="payment" id="payment2">
+                        <label class="form-check-label" for="payment2">
+                            <strong>Cash on Delivery</strong>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Special Instructions -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">📝 Special Instructions</h5>
+                </div>
+                <div class="card-body">
+                    <textarea class="form-control" rows="3" placeholder="Any special instructions for your order..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Order Summary -->
+            <div class="card shadow-sm sticky-top" style="top: 20px;">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Items:</h6>
+                    <div class="list-group list-group-flush mb-3">
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>Spaghetti Carbonara x2</span>
+                            <span>$25.98</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>Caesar Salad x1</span>
+                            <span>$9.99</span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <span>$35.97</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Tax:</span>
+                        <span>$3.60</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Delivery:</span>
+                        <span>$5.00</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between fs-5 mb-4">
+                        <strong>Total:</strong>
+                        <strong class="text-success">$44.57</strong>
+                    </div>
+
+                    <button class="btn btn-success btn-lg w-100">
+                        ✓ Place Order
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

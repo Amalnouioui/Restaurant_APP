@@ -1,0 +1,73 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Plats (Dishes){% endblock %}
+
+{% block body %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1 class="mb-3">🍽️ Our Dishes</h1>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ path('app_plat_new') }}" class="btn btn-success btn-lg">
+            <i class="bi bi-plus-circle"></i> Add New Dish
+        </a>
+    </div>
+</div>
+
+{% if plats %}
+<div class="row">
+    {% for plat in plats %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100 shadow-sm hover-shadow">
+            <div class="card-body">
+                <h5 class="card-title text-primary">{{ plat.nomPlat }}</h5>
+                <p class="card-text text-muted">{{ plat.description|length > 100 ? plat.description|slice(0, 100) ~ '...' : plat.description }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="badge bg-warning text-dark fs-6">${{ plat.prix }}</span>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-top">
+                <a href="{{ path('app_plat_show', {'id': plat.id}) }}" class="btn btn-sm btn-info">View</a>
+                <a href="{{ path('app_plat_edit', {'id': plat.id}) }}" class="btn btn-sm btn-warning">Edit</a>
+                <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ plat.id }}">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div class="modal fade" id="deleteModal{{ plat.id }}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Delete Dish</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete <strong>{{ plat.nomPlat }}</strong>?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form method="post" action="{{ path('app_plat_delete', {'id': plat.id}) }}" style="display:inline;">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ plat.id) }}">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info text-center py-5">
+    <h5>No dishes found</h5>
+    <p class="mb-0">Start by adding your first dish!</p>
+</div>
+{% endif %}
+
+<style>
+.hover-shadow:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2) !important;
+    transition: all 0.3s ease;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,6 @@
+<form method="post" action="{{ path('app_plat_delete', {'id': plat.id}) }}" style="display:inline;">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ plat.id) }}">
+    <button type="submit" class="btn btn-danger">
+        <i class="bi bi-trash"></i> Delete This Dish
+    </button>
+</form>

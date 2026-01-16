@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Dish{% endblock %}
+
+{% block body %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow-lg">
+            <div class="card-header bg-warning text-dark">
+                <h3 class="mb-0">✏️ Edit Dish</h3>
+            </div>
+            <div class="card-body p-4">
+                {{ include('plat/_form.html.twig', {'button_label': 'Update Dish'}) }}
+            </div>
+            <div class="card-footer bg-light">
+                <a href="{{ path('app_plat_index') }}" class="btn btn-secondary">
+                    ← Back to Dishes
+                </a>
+                <button class="btn btn-danger float-end" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                    🗑️ Delete This Dish
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">⚠️ Delete Dish</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong>{{ plat.nomPlat }}</strong>?</p>
+                <p class="text-muted small">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                {{ include('plat/_delete_form.html.twig') }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

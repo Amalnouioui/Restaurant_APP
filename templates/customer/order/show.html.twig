@@ -1,0 +1,119 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Order Details - Restaurant{% endblock %}
+
+{% block body %}
+<div class="container py-4">
+    <a href="{{ path('app_customer_order_list') }}" class="btn btn-secondary mb-3">← Back to Orders</a>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Order #00{{ order_id }}</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Order Date</h6>
+                            <p>2026-01-16 14:30</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Estimated Time</h6>
+                            <p>30 minutes</p>
+                        </div>
+                    </div>
+
+                    <h5>Order Items</h5>
+                    <table class="table table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Item</th>
+                                <th>Qty</th>
+                                <th>Price</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Spaghetti Carbonara</td>
+                                <td>2</td>
+                                <td>$12.99</td>
+                                <td>$25.98</td>
+                            </tr>
+                            <tr>
+                                <td>Caesar Salad</td>
+                                <td>1</td>
+                                <td>$9.99</td>
+                                <td>$9.99</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="text-end">
+                        <p class="fs-5"><strong>Total: $35.97</strong></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Order Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item mb-4">
+                            <div class="d-flex">
+                                <div class="timeline-marker bg-success text-white rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">✓</div>
+                                <div class="ms-3">
+                                    <h6>Order Confirmed</h6>
+                                    <p class="text-muted small">2026-01-16 14:30</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="timeline-item mb-4">
+                            <div class="d-flex">
+                                <div class="timeline-marker bg-warning text-dark rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">⚙️</div>
+                                <div class="ms-3">
+                                    <h6>Preparing</h6>
+                                    <p class="text-muted small">In progress...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="timeline-item">
+                            <div class="d-flex">
+                                <div class="timeline-marker bg-secondary rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">📦</div>
+                                <div class="ms-3">
+                                    <h6>Ready for Delivery</h6>
+                                    <p class="text-muted small">Pending</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm sticky-top" style="top: 20px;">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Delivery Info</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Address:</strong></p>
+                    <p>123 Main Street<br>New York, NY 10001</p>
+                    
+                    <hr>
+                    
+                    <p><strong>Estimated Time:</strong></p>
+                    <h4 class="text-danger">~28 minutes</h4>
+                    
+                    <button class="btn btn-primary w-100 mt-3">Track Live</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

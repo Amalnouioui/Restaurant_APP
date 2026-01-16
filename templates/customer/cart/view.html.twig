@@ -1,0 +1,101 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Shopping Cart - Restaurant{% endblock %}
+
+{% block body %}
+<div class="container py-4">
+    <h1>🛒 Shopping Cart</h1>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Cart Items</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Item</th>
+                                <th>Price</th>
+                                <th>Qty</th>
+                                <th>Subtotal</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <strong>Spaghetti Carbonara</strong>
+                                    <br><small class="text-muted">Classic Italian pasta with bacon and cream sauce</small>
+                                </td>
+                                <td>$12.99</td>
+                                <td>
+                                    <input type="number" class="form-control form-control-sm" value="2" min="1" style="width: 70px;">
+                                </td>
+                                <td><strong>$25.98</strong></td>
+                                <td>
+                                    <button class="btn btn-sm btn-danger">🗑️</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>Caesar Salad</strong>
+                                    <br><small class="text-muted">Fresh lettuce with parmesan and croutons</small>
+                                </td>
+                                <td>$9.99</td>
+                                <td>
+                                    <input type="number" class="form-control form-control-sm" value="1" min="1" style="width: 70px;">
+                                </td>
+                                <td><strong>$9.99</strong></td>
+                                <td>
+                                    <button class="btn btn-sm btn-danger">🗑️</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div>
+                <a href="{{ path('app_customer_menu') }}" class="btn btn-secondary">← Continue Shopping</a>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm sticky-top" style="top: 20px;">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <span>$35.97</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Tax (10%):</span>
+                        <span>$3.60</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Delivery:</span>
+                        <span>$5.00</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between fs-5">
+                        <strong>Total:</strong>
+                        <strong class="text-success">$44.57</strong>
+                    </div>
+
+                    <button class="btn btn-success btn-lg w-100 mt-3" onclick="alert('Redirecting to checkout...')">
+                        🛍️ Proceed to Checkout
+                    </button>
+
+                    <button class="btn btn-outline-secondary btn-lg w-100 mt-2">
+                        💳 Pay Now
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

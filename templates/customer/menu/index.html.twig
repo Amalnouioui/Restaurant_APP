@@ -1,0 +1,64 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Menu - Restaurant{% endblock %}
+
+{% block body %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>🍽️ Our Menu</h1>
+            <p class="text-muted">Choose your favorite dishes</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ path('app_customer_cart_view') }}" class="btn btn-primary">
+                🛒 View Cart <span class="badge bg-success">0</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="row" id="menu-items">
+        <!-- Menu items will be loaded here -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Spaghetti Carbonara</h5>
+                    <p class="card-text text-muted">Classic Italian pasta with bacon and cream sauce</p>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="badge bg-warning text-dark fs-6">$12.99</span>
+                    </div>
+                    <input type="number" class="form-control form-control-sm mb-2" placeholder="Qty" value="1" min="1">
+                    <button class="btn btn-success btn-sm w-100">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Grilled Salmon</h5>
+                    <p class="card-text text-muted">Fresh salmon fillet with lemon and herbs</p>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="badge bg-warning text-dark fs-6">$18.50</span>
+                    </div>
+                    <input type="number" class="form-control form-control-sm mb-2" placeholder="Qty" value="1" min="1">
+                    <button class="btn btn-success btn-sm w-100">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Caesar Salad</h5>
+                    <p class="card-text text-muted">Fresh lettuce with parmesan and croutons</p>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="badge bg-warning text-dark fs-6">$9.99</span>
+                    </div>
+                    <input type="number" class="form-control form-control-sm mb-2" placeholder="Qty" value="1" min="1">
+                    <button class="btn btn-success btn-sm w-100">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
