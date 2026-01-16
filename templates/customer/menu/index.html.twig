@@ -3,62 +3,162 @@
 {% block title %}Menu - Restaurant{% endblock %}
 
 {% block body %}
-<div class="container py-4">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1>🍽️ Our Menu</h1>
-            <p class="text-muted">Choose your favorite dishes</p>
-        </div>
-        <div class="col-md-4 text-end">
-            <a href="{{ path('app_customer_cart_view') }}" class="btn btn-primary">
-                🛒 View Cart <span class="badge bg-success">0</span>
-            </a>
-        </div>
-    </div>
+<div class="container mt-5 pb-6">
+    <h1 class="mb-4">Our Menu</h1>
 
-    <div class="row" id="menu-items">
-        <!-- Menu items will be loaded here -->
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Spaghetti Carbonara</h5>
-                    <p class="card-text text-muted">Classic Italian pasta with bacon and cream sauce</p>
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="badge bg-warning text-dark fs-6">$12.99</span>
+    {% if plats is empty %}
+        <div class="alert alert-info">No dishes available.</div>
+    {% else %}
+        <div class="row">
+            {% for plat in plats %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ plat.nomPlat }}</h5>
+                            <p class="card-text text-muted">{{ plat.description }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="h5 mb-0">€{{ plat.prix|number_format(2, '.', ',') }}</span>
+                                <div class="input-group" style="width: 130px;">
+                                    <input type="number" class="form-control quantity-input" value="1" min="1" data-plat-id="{{ plat.id }}">
+                                    <button class="btn btn-primary add-to-cart-btn" data-plat-id="{{ plat.id }}" type="button">
+                                        Add
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <input type="number" class="form-control form-control-sm mb-2" placeholder="Qty" value="1" min="1">
-                    <button class="btn btn-success btn-sm w-100">Add to Cart</button>
                 </div>
-            </div>
-        </div>
-
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Grilled Salmon</h5>
-                    <p class="card-text text-muted">Fresh salmon fillet with lemon and herbs</p>
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="badge bg-warning text-dark fs-6">$18.50</span>
-                    </div>
-                    <input type="number" class="form-control form-control-sm mb-2" placeholder="Qty" value="1" min="1">
-                    <button class="btn btn-success btn-sm w-100">Add to Cart</button>
-                </div>
-            </div>
+            {% endfor %}
         </div>
 
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Caesar Salad</h5>
-                    <p class="card-text text-muted">Fresh lettuce with parmesan and croutons</p>
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="badge bg-warning text-dark fs-6">$9.99</span>
-                    </div>
-                    <input type="number" class="form-control form-control-sm mb-2" placeholder="Qty" value="1" min="1">
-                    <button class="btn btn-success btn-sm w-100">Add to Cart</button>
-                </div>
+        <div class="fixed-bottom mb-4">
+            <div class="container d-flex justify-content-end gap-2">
+                <button class="btn btn-outline-secondary btn-lg" id="view-cart-btn">
+                    View Cart
+                </button>
+                <button class="btn btn-success btn-lg" id="checkout-btn">
+                    Proceed to Checkout
+                </button>
             </div>
         </div>
-    </div>
+    {% endif %}
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
+    const checkoutBtn = document.getElementById('checkout-btn');
+    const viewCartBtn = document.getElementById('view-cart-btn');
+
+    // Add to cart functionality
+    addToCartButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const platId = this.dataset.platId;
+            const quantityInput = document.querySelector(`.quantity-input[data-plat-id="${platId}"]`);
+            const quantity = parseInt(quantityInput.value) || 1;
+
+            fetch('{{ path('app_customer_add_to_cart') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    platId: parseInt(platId),
+                    quantity: quantity
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Dish added to cart!', 'success');
+                    quantityInput.value = 1;
+                } else {
+                    showNotification('Error adding to cart', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Error adding to cart', 'danger');
+            });
+        });
+    });
+
+    // View cart button
+    viewCartBtn.addEventListener('click', function() {
+        window.location.href = '{{ path('app_customer_cart') }}';
+    });
+
+    // Checkout button
+    checkoutBtn.addEventListener('click', function() {
+        fetch('{{ path('app_customer_checkout') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Order created successfully! Order ID: ' + data.commandeId, 'success');
+                setTimeout(() => {
+                    window.location.href = '{{ path('app_customer_order_list') }}';
+                }, 2000);
+            } else {
+                showNotification('Error: ' + (data.error || 'Unknown error'), 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Error creating order', 'danger');
+        });
+    });
+
+    // Notification helper
+    function showNotification(message, type = 'info') {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.role = 'alert';
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        
+        const container = document.querySelector('.container');
+        container.insertBefore(alertDiv, container.firstChild);
+        
+        setTimeout(() => alertDiv.remove(), 5000);
+    }
+});
+</script>
+
+<style>
+.fixed-bottom {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    padding-top: 1rem;
+    border-top: 1px solid #ddd;
+    z-index: 1000;
+}
+
+.pb-6 {
+    padding-bottom: 150px;
+}
+
+.card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
+}
+
+.quantity-input {
+    text-align: center;
+}
+</style>
 {% endblock %}
