@@ -6,6 +6,7 @@ use App\Entity\Client;
 use App\Entity\Commande;
 use App\Entity\LigneCommande;
 use App\Repository\PlatRepository;
+use App\Repository\CommandeRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -150,6 +151,7 @@ final class CartController extends AbstractController
         Request $request,
         SessionInterface $session,
         PlatRepository $platRepository,
+        CommandeRepository $commandeRepository,
         EntityManagerInterface $em
     ): Response {
         $cart = $session->get('cart', []);
@@ -260,6 +262,9 @@ final class CartController extends AbstractController
             // For CARD, simulate payment gateway
             $commande->setStatut('CONFIRMED');
             $commande->setPaymentStatus('PAID');
+            
+            // Calculate estimated time for paid orders
+            $commande->setEstimatedTime($this->calculateEstimatedTime($commandeRepository));
         }
 
         // Add order lines
@@ -282,5 +287,21 @@ final class CartController extends AbstractController
         $session->remove('cart');
 
         return $this->redirectToRoute('app_customer_order_success', ['id' => $commande->getId()]);
+    }
+
+    private function calculateEstimatedTime(CommandeRepository $commandeRepository): int
+    {
+        // Count paid orders in queue (PENDING, CONFIRMED, IN_PROGRESS)
+        $paidOrdersInQueue = $commandeRepository->createQueryBuilder('c')
+            ->select('COUNT(c.id)')
+            ->where('c.paymentStatus = :paid')
+            ->andWhere('c.statut IN (:statuses)')
+            ->setParameter('paid', 'PAID')
+            ->setParameter('statuses', ['PENDING', 'CONFIRMED', 'IN_PROGRESS'])
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // Each order takes 10 minutes, new order gets next position
+        return 10 * ((int)$paidOrdersInQueue + 1);
     }
 }

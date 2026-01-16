@@ -31,6 +31,9 @@ class Commande
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $paymentStatus = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?int $estimatedTime = null;
+
     #[ORM\ManyToOne(targetEntity: Client::class, inversedBy: 'commandes')]
     #[ORM\JoinColumn(name: 'idClient', referencedColumnName: 'idClient', nullable: false)]
     private ?Client $client = null;
@@ -111,6 +114,17 @@ class Commande
     public function setPaymentStatus(?string $paymentStatus): static
     {
         $this->paymentStatus = $paymentStatus;
+        return $this;
+    }
+
+    public function getEstimatedTime(): ?int
+    {
+        return $this->estimatedTime;
+    }
+
+    public function setEstimatedTime(?int $estimatedTime): static
+    {
+        $this->estimatedTime = $estimatedTime;
         return $this;
     }
 

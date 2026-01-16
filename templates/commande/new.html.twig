@@ -52,6 +52,15 @@
                         </div>
                     </div>
 
+                    <div class="row">
+                        <div class="col-md-12 mb-4">
+                            <label class="form-label fw-bold"><i class="bi bi-clock"></i> Estimated Time (minutes)</label>
+                            {{ form_widget(form.estimatedTime, {'attr': {'class': 'form-control', 'placeholder': 'Auto-calculated', 'min': '5', 'step': '5'}}) }}
+                            <small class="form-text text-muted">Leave empty to auto-calculate based on queue</small>
+                            {{ form_errors(form.estimatedTime) }}
+                        </div>
+                    </div>
+
                     <div class="mb-4">
                         <label class="form-label fw-bold"><i class="bi bi-journal-text"></i> Notes / Chef Instructions</label>
                         <textarea class="form-control" rows="3" placeholder="Add special instructions or notes for the chef..." name="notes"></textarea>

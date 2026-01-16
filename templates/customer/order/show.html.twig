@@ -32,6 +32,22 @@
                             <p>{{ commande.dateHeure|date('F d, Y - H:i') }}</p>
                         </div>
                         <div class="col-md-6">
+                            <h6 class="text-muted"><i class="bi bi-clock-history"></i> Estimated Wait Time</h6>
+                            {% if commande.estimatedTime %}
+                                <p class="fs-4">
+                                    <span class="badge bg-info text-white px-3 py-2">
+                                        <i class="bi bi-hourglass-split"></i> {{ commande.estimatedTime }} minutes
+                                    </span>
+                                </p>
+                                <small class="text-muted">Approximate preparation time</small>
+                            {% else %}
+                                <p class="text-muted">Calculating...</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
                             <h6 class="text-muted">Payment</h6>
                             <p>
                                 {% if commande.paymentMethod == 'CARD' %}
@@ -42,6 +58,20 @@
                                 <span class="badge bg-{{ commande.paymentStatus == 'PAID' ? 'success' : 'warning' }}">
                                     {{ commande.paymentStatus }}
                                 </span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Order Status</h6>
+                            <p>
+                                {% if commande.statut == 'CONFIRMED' %}
+                                    <span class="badge bg-success">✓ {{ commande.statut }}</span>
+                                {% elseif commande.statut == 'IN_PROGRESS' %}
+                                    <span class="badge bg-warning">🍳 {{ commande.statut }}</span>
+                                {% elseif commande.statut == 'READY' %}
+                                    <span class="badge bg-info">✅ {{ commande.statut }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ commande.statut }}</span>
+                                {% endif %}
                             </p>
                         </div>
                     </div>
