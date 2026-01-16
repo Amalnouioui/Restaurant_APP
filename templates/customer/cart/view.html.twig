@@ -239,6 +239,24 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Auto-refresh orders every 5 seconds
+    setInterval(function() {
+        const ordersTab = document.getElementById('orders');
+        if (ordersTab) {
+            fetch(window.location.href)
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const newDoc = parser.parseFromString(html, 'text/html');
+                    const newOrdersTab = newDoc.getElementById('orders');
+                    if (newOrdersTab) {
+                        ordersTab.innerHTML = newOrdersTab.innerHTML;
+                    }
+                })
+                .catch(error => console.error('Error refreshing orders:', error));
+        }
+    }, 5000);
+
     function updateTotal() {
         let total = 0;
         document.querySelectorAll('#pending-cart tbody tr').forEach(row => {
@@ -261,6 +279,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .table-hover tbody tr:hover {
     background-color: #f5f5f5;
+}
+
+.status-update-indicator {
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
 }
 </style>
 {% endblock %}

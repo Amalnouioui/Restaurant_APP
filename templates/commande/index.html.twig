@@ -1,43 +1,233 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Commandes{% endblock %}
+{% block title %}Order Management - Admin{% endblock %}
 
 {% block body %}
-<div class="container">
-    <h1>Commandes</h1>
+<div class="container-fluid py-5">
+    <h1 class="mb-4">Kitchen Order Tickets</h1>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>DateHeure</th>
-                <th>Statut</th>
-                <th>Total</th>
-                <th>Client</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for commande in commandes %}
-            <tr>
-                <td>{{ commande.id }}</td>
-                <td>{{ commande.dateHeure ? commande.dateHeure|date('Y-m-d H:i:s') : '' }}</td>
-                <td>{{ commande.statut }}</td>
-                <td>{{ commande.total }}</td>
-                <td>{{ commande.client.nom }} {{ commande.client.prenom }}</td>
-                <td>
-                    <a href="{{ path('app_commande_show', {'id': commande.id}) }}">show</a>
-                    <a href="{{ path('app_commande_edit', {'id': commande.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="6">no records found</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+    {% if commandes is empty %}
+        <div class="alert alert-info">
+            No orders yet.
+        </div>
+    {% else %}
+        <div class="row g-3">
+            {% for commande in commandes %}
+                <div class="col-lg-4 col-md-6">
+                    <div class="card order-ticket h-100" data-order-id="{{ commande.id }}">
+                        <!-- Order Header -->
+                        <div class="card-header order-header" style="background-color: {% if commande.statut == 'pending' %}#ff6b6b{% elseif commande.statut == 'Order Confirmed' %}#ffd93d{% elseif commande.statut == 'Preparing' %}#6bcf7f{% elseif commande.statut == 'Ready for Delivery' %}#4d96ff{% else %}#95a5a6{% endif %}; color: white; padding: 1rem;">
+                            <div class="row">
+                                <div class="col-auto">
+                                    <h3 class="mb-0">#{{ commande.id }}</h3>
+                                    <small>{{ commande.dateHeure|date('H:i:s') }}</small>
+                                </div>
+                                <div class="col-auto ms-auto text-end">
+                                    <div class="customer-name">{{ commande.client.nom }}</div>
+                                    <small>{{ commande.client.prenom }}</small>
+                                </div>
+                            </div>
+                        </div>
 
-    <a href="{{ path('app_commande_new') }}">Create new</a>
+                        <!-- Items List -->
+                        <div class="card-body order-items" style="flex-grow: 1;">
+                            <h5 class="mb-3">Items:</h5>
+                            <div class="items-list">
+                                {% for ligneCommande in commande.ligneCommandes %}
+                                    <div class="order-item mb-3 p-2 border-bottom">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <strong>{{ ligneCommande.plat.nomPlat }}</strong>
+                                                <small class="text-muted d-block">{{ ligneCommande.plat.description }}</small>
+                                            </div>
+                                            <span class="badge bg-primary">x{{ ligneCommande.quantite }}</span>
+                                        </div>
+                                        <small class="text-muted">€{{ ligneCommande.plat.prix|number_format(2, '.', ',') }}</small>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Total -->
+                        <div class="card-footer border-top">
+                            <div class="row align-items-center">
+                                <div class="col">
+                                    <strong>Total:</strong> €{{ commande.total|number_format(2, '.', ',') }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Status Management -->
+                        <div class="card-footer bg-light">
+                            <div class="mb-2">
+                                <strong>Status:</strong>
+                                <div class="status-badge badge" style="background-color: {% if commande.statut == 'pending' %}#ff6b6b{% elseif commande.statut == 'Order Confirmed' %}#ffd93d{% elseif commande.statut == 'Preparing' %}#6bcf7f{% elseif commande.statut == 'Ready for Delivery' %}#4d96ff{% else %}#95a5a6{% endif %}; padding: 0.5rem 1rem; display: inline-block;">
+                                    <span class="current-status">{{ commande.statut }}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="btn-group w-100" role="group">
+                                <button type="button" class="btn btn-sm {% if commande.statut == 'pending' %}btn-danger active{% else %}btn-outline-danger{% endif %} status-btn" data-status="pending" data-order-id="{{ commande.id }}" title="New Order">
+                                    📋 Pending
+                                </button>
+                                <button type="button" class="btn btn-sm {% if commande.statut == 'Order Confirmed' %}btn-warning active{% else %}btn-outline-warning{% endif %} status-btn" data-status="Order Confirmed" data-order-id="{{ commande.id }}" title="Confirmed">
+                                    ✓ Confirmed
+                                </button>
+                                <button type="button" class="btn btn-sm {% if commande.statut == 'Preparing' %}btn-success active{% else %}btn-outline-success{% endif %} status-btn" data-status="Preparing" data-order-id="{{ commande.id }}" title="Cooking">
+                                    👨‍🍳 Preparing
+                                </button>
+                                <button type="button" class="btn btn-sm {% if commande.statut == 'Ready for Delivery' %}btn-info active{% else %}btn-outline-info{% endif %} status-btn" data-status="Ready for Delivery" data-order-id="{{ commande.id }}" title="Ready">
+                                    📦 Ready
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
 </div>
+
+<style>
+.order-ticket {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e0e0e0;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.order-ticket:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+}
+
+.order-header {
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+}
+
+.order-items {
+    max-height: 400px;
+    overflow-y: auto;
+    font-family: 'Courier New', monospace;
+}
+
+.order-item {
+    background-color: #f9f9f9;
+    border-radius: 4px;
+}
+
+.status-btn {
+    font-weight: 600;
+}
+
+.status-btn.active {
+    color: white !important;
+}
+
+.btn-group {
+    gap: 2px;
+}
+
+.btn-group > .btn {
+    flex: 1;
+}
+
+@media print {
+    .btn-group, .btn {
+        display: none;
+    }
+    
+    .order-ticket {
+        page-break-inside: avoid;
+        border: 1px solid #000;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const statusButtons = document.querySelectorAll('.status-btn');
+
+    statusButtons.forEach(button => {
+        button.addEventListener('click', async function() {
+            const orderId = this.dataset.orderId;
+            const newStatus = this.dataset.status;
+            
+            try {
+                const response = await fetch(`/commande/${orderId}/status`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Update UI
+                    const ticket = document.querySelector(`[data-order-id="${orderId}"]`);
+                    
+                    // Update all buttons for this order
+                    const buttons = ticket.querySelectorAll('.status-btn');
+                    buttons.forEach(btn => {
+                        btn.classList.remove('active', 'btn-danger', 'btn-warning', 'btn-success', 'btn-info');
+                        btn.classList.add('btn-outline-' + getOutlineClass(btn.dataset.status));
+                    });
+
+                    // Highlight active button
+                    this.classList.remove('btn-outline-' + getOutlineClass(newStatus));
+                    this.classList.add(getActiveClass(newStatus), 'active');
+
+                    // Update status badge
+                    const statusSpan = ticket.querySelector('.current-status');
+                    statusSpan.textContent = newStatus;
+
+                    // Update header color
+                    const header = ticket.querySelector('.order-header');
+                    const colors = {
+                        'pending': '#ff6b6b',
+                        'Order Confirmed': '#ffd93d',
+                        'Preparing': '#6bcf7f',
+                        'Ready for Delivery': '#4d96ff'
+                    };
+                    header.style.backgroundColor = colors[newStatus] || '#95a5a6';
+                    
+                    // Update status badge color
+                    const badge = ticket.querySelector('.status-badge');
+                    badge.style.backgroundColor = colors[newStatus] || '#95a5a6';
+
+                    console.log('Status updated successfully');
+                } else {
+                    alert('Error updating status: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error updating status');
+            }
+        });
+    });
+
+    function getActiveClass(status) {
+        const classes = {
+            'pending': 'btn-danger',
+            'Order Confirmed': 'btn-warning',
+            'Preparing': 'btn-success',
+            'Ready for Delivery': 'btn-info'
+        };
+        return classes[status] || 'btn-secondary';
+    }
+
+    function getOutlineClass(status) {
+        const classes = {
+            'pending': 'danger',
+            'Order Confirmed': 'warning',
+            'Preparing': 'success',
+            'Ready for Delivery': 'info'
+        };
+        return classes[status] || 'secondary';
+    }
+});
+</script>
 {% endblock %}
+

@@ -14,11 +14,15 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/commande')]
 class CommandeController extends AbstractController
 {
+    private const VALID_STATUSES = ['pending', 'Order Confirmed', 'Preparing', 'Ready for Delivery', 'cancelled'];
+
     #[Route('/', name: 'app_commande_index', methods: ['GET'])]
     public function index(CommandeRepository $commandeRepository): Response
     {
+        $commandes = $commandeRepository->findAll();
+        
         return $this->render('commande/index.html.twig', [
-            'commandes' => $commandeRepository->findAll(),
+            'commandes' => $commandes,
         ]);
     }
 
@@ -78,4 +82,25 @@ class CommandeController extends AbstractController
 
         return $this->redirectToRoute('app_commande_index', [], Response::HTTP_SEE_OTHER);
     }
+
+    #[Route('/{id}/status', name: 'app_commande_update_status', methods: ['POST'])]
+    public function updateStatus(Request $request, Commande $commande, EntityManagerInterface $entityManager): Response
+    {
+        $data = json_decode($request->getContent(), true);
+        $newStatus = $data['status'] ?? null;
+
+        if (!$newStatus || !in_array($newStatus, self::VALID_STATUSES)) {
+            return $this->json(['error' => 'Invalid status'], 400);
+        }
+
+        $commande->setStatut($newStatus);
+        $entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'status' => $newStatus,
+            'message' => 'Status updated successfully'
+        ]);
+    }
 }
+
