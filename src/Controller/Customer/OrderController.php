@@ -160,10 +160,18 @@ final class OrderController extends AbstractController
     }
 
     #[Route('/order', name: 'app_customer_order_list')]
-    public function list(): Response
+    public function list(Request $request): Response
     {
+        // Get the first client
+        $clients = $this->clientRepository->findAll();
+        $client = !empty($clients) ? $clients[0] : null;
+        
+        // Get all commands for this client from database
+        $commandes = $client ? $this->commandeRepository->findBy(['client' => $client], ['dateHeure' => 'DESC']) : [];
+        
         return $this->render('customer/order/list.html.twig', [
-            'controller_name' => 'OrderController',
+            'commandes' => $commandes,
+            'client' => $client,
         ]);
     }
 

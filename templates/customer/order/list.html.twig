@@ -5,29 +5,267 @@
 {% block body %}
 <div class="container py-4">
     <h1>📋 My Orders</h1>
-    <p class="text-muted">Track your order status here</p>
+    <p class="text-muted">Track your order status in real-time</p>
 
-    <div class="row mt-4">
-        <!-- Order 1 -->
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Order #001</h5>
-                    <span class="badge bg-warning">Preparing</span>
+    {% if commandes is empty %}
+        <div class="alert alert-info mt-4">
+            <strong>No orders yet!</strong>
+            <a href="{{ path('app_customer_menu') }}" class="btn btn-primary ms-2">Start Ordering</a>
+        </div>
+    {% else %}
+        <div class="row mt-4" id="orders-container">
+            {% for commande in commandes %}
+                <div class="col-lg-6 mb-4 order-card" data-order-id="{{ commande.id }}">
+                    <div class="card shadow-sm h-100">
+                        <!-- Order Header with Status -->
+                        <div class="card-header {% if commande.statut == 'pending' %}bg-danger{% elseif commande.statut == 'Order Confirmed' %}bg-warning{% elseif commande.statut == 'Preparing' %}bg-info{% elseif commande.statut == 'Ready for Delivery' %}bg-success{% else %}bg-secondary{% endif %} text-white d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-0">Order #{{ commande.id }}</h5>
+                                <small>{{ commande.dateHeure|date('d/m/Y H:i:s') }}</small>
+                            </div>
+                            <span class="badge bg-light text-dark status-badge" data-status="{{ commande.statut }}">
+                                {% if commande.statut == 'pending' %}
+                                    ⏳ Pending
+                                {% elseif commande.statut == 'Order Confirmed' %}
+                                    ✓ Confirmed
+                                {% elseif commande.statut == 'Preparing' %}
+                                    👨‍🍳 Preparing
+                                {% elseif commande.statut == 'Ready for Delivery' %}
+                                    📦 Ready
+                                {% else %}
+                                    {{ commande.statut }}
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <!-- Order Items -->
+                        <div class="card-body">
+                            <h6 class="mb-3"><strong>Items Ordered:</strong></h6>
+                            <div class="items-list">
+                                {% for ligneCommande in commande.ligneCommandes %}
+                                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                                        <div>
+                                            <strong>{{ ligneCommande.plat.nomPlat }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ ligneCommande.plat.description }}</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <div>x{{ ligneCommande.quantite }}</div>
+                                            <strong>€{{ (ligneCommande.plat.prix * ligneCommande.quantite)|number_format(2, '.', ',') }}</strong>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                            <hr>
+                            
+                            <!-- Order Total -->
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0"><strong>Order Total:</strong></h6>
+                                <h5 class="mb-0 text-success"><strong>€{{ commande.total|number_format(2, '.', ',') }}</strong></h5>
+                            </div>
+                        </div>
+
+                        <!-- Status Progress Bar -->
+                        <div class="card-footer bg-light">
+                            <div class="mb-3">
+                                <h6 class="small mb-2"><strong>Status Progress:</strong></h6>
+                                <div class="progress" style="height: 25px;">
+                                    {% set statusProgress = {
+                                        'pending': 25,
+                                        'Order Confirmed': 50,
+                                        'Preparing': 75,
+                                        'Ready for Delivery': 100
+                                    } %}
+                                    {% set progress = statusProgress[commande.statut] ?? 0 %}
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" 
+                                         style="width: {{ progress }}%; background-color: {% if progress == 100 %}#28a745{% elseif progress >= 75 %}#17a2b8{% elseif progress >= 50 %}#ffc107{% else %}#dc3545{% endif %};"
+                                         aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100">
+                                        {{ progress }}%
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <button class="btn btn-sm btn-outline-primary w-100 view-details-btn" data-order-id="{{ commande.id }}" data-bs-toggle="modal" data-bs-target="#orderModal{{ commande.id }}">
+                                        View Details
+                                    </button>
+                                </div>
+                                <div class="col-6">
+                                    <a href="{{ path('app_customer_menu') }}" class="btn btn-sm btn-outline-success w-100">
+                                        Reorder
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <p><strong>Date:</strong> 2026-01-16 14:30</p>
-                    <p><strong>Total:</strong> $35.97</p>
-                    <hr>
-                    <h6>Items:</h6>
-                    <ul class="list-unstyled">
-                        <li>✓ Spaghetti Carbonara x2</li>
-                        <li>✓ Caesar Salad x1</li>
-                    </ul>
+
+                <!-- Order Details Modal -->
+                <div class="modal fade" id="orderModal{{ commande.id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header bg-primary text-white">
+                                <h5 class="modal-title">Order #{{ commande.id }} Details</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <p><strong>Order Date:</strong> {{ commande.dateHeure|date('d/m/Y H:i:s') }}</p>
+                                        <p><strong>Customer:</strong> {{ commande.client.prenom }} {{ commande.client.nom }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Email:</strong> {{ commande.client.email }}</p>
+                                        <p><strong>Status:</strong> 
+                                            <span class="badge" style="background-color: {% if commande.statut == 'pending' %}#dc3545{% elseif commande.statut == 'Order Confirmed' %}#ffc107{% elseif commande.statut == 'Preparing' %}#17a2b8{% elseif commande.statut == 'Ready for Delivery' %}#28a745{% else %}#6c757d{% endif %}; color: white;">
+                                                {{ commande.statut }}
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <h6 class="mb-3"><strong>Order Items:</strong></h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Dish</th>
+                                                <th class="text-end">Price</th>
+                                                <th class="text-center">Qty</th>
+                                                <th class="text-end">Subtotal</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for ligneCommande in commande.ligneCommandes %}
+                                                <tr>
+                                                    <td>
+                                                        <strong>{{ ligneCommande.plat.nomPlat }}</strong>
+                                                        <br>
+                                                        <small class="text-muted">{{ ligneCommande.plat.description }}</small>
+                                                    </td>
+                                                    <td class="text-end">€{{ ligneCommande.plat.prix|number_format(2, '.', ',') }}</td>
+                                                    <td class="text-center">{{ ligneCommande.quantite }}</td>
+                                                    <td class="text-end"><strong>€{{ (ligneCommande.plat.prix * ligneCommande.quantite)|number_format(2, '.', ',') }}</strong></td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <hr>
+
+                                <div class="row">
+                                    <div class="col-md-6"></div>
+                                    <div class="col-md-6">
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <strong>Subtotal:</strong>
+                                            <span>€{{ commande.total|number_format(2, '.', ',') }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between fs-5">
+                                            <strong>Total:</strong>
+                                            <strong class="text-success">€{{ commande.total|number_format(2, '.', ',') }}</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-footer bg-light">
-                    <a href="{{ path('app_customer_order_show', {'id': 1}) }}" class="btn btn-sm btn-info">View Details</a>
-                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-refresh order statuses every 3 seconds
+    setInterval(function() {
+        fetch('{{ path('app_customer_api_orders') }}')
+            .then(response => response.json())
+            .then(data => {
+                updateOrderStatuses(data.orders);
+            })
+            .catch(error => console.error('Error fetching orders:', error));
+    }, 3000);
+
+    function updateOrderStatuses(orders) {
+        orders.forEach(order => {
+            const orderCard = document.querySelector(`[data-order-id="${order.id}"]`);
+            if (orderCard) {
+                // Update status badge
+                const statusBadge = orderCard.querySelector('.status-badge');
+                if (statusBadge && statusBadge.textContent.trim() !== getStatusLabel(order.status)) {
+                    statusBadge.textContent = getStatusLabel(order.status);
+                }
+
+                // Update card header background color
+                const cardHeader = orderCard.querySelector('.card-header');
+                const colorMap = {
+                    'pending': 'bg-danger',
+                    'Order Confirmed': 'bg-warning',
+                    'Preparing': 'bg-info',
+                    'Ready for Delivery': 'bg-success'
+                };
+                
+                // Remove all status classes
+                Object.values(colorMap).forEach(cls => cardHeader.classList.remove(cls));
+                // Add the correct class
+                cardHeader.classList.add(colorMap[order.status] || 'bg-secondary');
+            }
+        });
+    }
+
+    function getStatusLabel(status) {
+        const labels = {
+            'pending': '⏳ Pending',
+            'Order Confirmed': '✓ Confirmed',
+            'Preparing': '👨‍🍳 Preparing',
+            'Ready for Delivery': '📦 Ready'
+        };
+        return labels[status] || status;
+    }
+});
+</script>
+
+<style>
+.order-card {
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.order-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15) !important;
+}
+
+.card-header {
+    border-radius: 0.375rem 0.375rem 0 0;
+    transition: background-color 0.3s ease;
+}
+
+.progress-bar-animated {
+    animation: progress-bar-stripes 1s linear infinite;
+}
+
+.items-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+@media (max-width: 576px) {
+    .order-card {
+        margin-bottom: 1.5rem;
+    }
+}
+</style>
+{% endblock %}
+
             </div>
         </div>
 
