@@ -2,21 +2,589 @@
 
 {% block title %}My Orders - Restaurant{% endblock %}
 
+{% block stylesheets %}
+<style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .orders-header {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 40px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        text-align: center;
+    }
+
+    .orders-header h1 {
+        font-size: 3.5rem;
+        color: #333;
+        margin: 0;
+        font-weight: 800;
+    }
+
+    .orders-header p {
+        font-size: 1.1rem;
+        color: #666;
+        margin-top: 10px;
+    }
+
+    .orders-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+        gap: 30px;
+        margin-bottom: 40px;
+    }
+
+    .order-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: 3px solid transparent;
+    }
+
+    .order-card:hover {
+        transform: translateY(-15px) scale(1.02);
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.2);
+        border-color: #667eea;
+    }
+
+    .order-header {
+        padding: 25px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .order-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(0,0,0,0.1), rgba(0,0,0,0.2));
+    }
+
+    .order-header.pending {
+        background: linear-gradient(135deg, #FF6B6B, #FF5252);
+    }
+
+    .order-header.confirmed {
+        background: linear-gradient(135deg, #FFD93D, #FFC700);
+    }
+
+    .order-header.preparing {
+        background: linear-gradient(135deg, #6BCF7F, #52B788);
+    }
+
+    .order-header.ready {
+        background: linear-gradient(135deg, #4D96FF, #1E88E5);
+    }
+
+    .order-header-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .order-id-section h3 {
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: 700;
+    }
+
+    .order-id-section small {
+        display: block;
+        font-size: 0.9rem;
+        opacity: 0.9;
+        margin-top: 5px;
+    }
+
+    .status-badge {
+        font-size: 0.85rem;
+        padding: 10px 20px !important;
+        border-radius: 50px;
+        font-weight: 600;
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(10px);
+    }
+
+    .order-items {
+        padding: 25px;
+    }
+
+    .item-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .dish-box {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        border-radius: 12px;
+        overflow: hidden;
+        padding: 12px;
+        text-align: center;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .dish-box:hover {
+        transform: scale(1.05);
+        border-color: #667eea;
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .dish-image {
+        width: 100%;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        background: #e0e0e0;
+    }
+
+    .dish-name {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #333;
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .dish-qty {
+        font-size: 0.75rem;
+        color: #666;
+        margin-top: 4px;
+    }
+
+    .order-summary {
+        background: #f8f9fa;
+        padding: 20px 25px;
+        border-top: 2px solid #e9ecef;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        font-size: 0.95rem;
+    }
+
+    .summary-row:last-child {
+        margin-bottom: 0;
+    }
+
+    .summary-row.total {
+        border-top: 2px solid #e9ecef;
+        padding-top: 12px;
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #667eea;
+    }
+
+    .order-footer {
+        padding: 20px 25px;
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn-action {
+        flex: 1;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        text-align: center;
+        display: inline-block;
+    }
+
+    .btn-details {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+
+    .btn-details:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-reorder {
+        background: linear-gradient(135deg, #f093fb, #f5576c);
+        color: white;
+    }
+
+    .btn-reorder:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(245, 87, 108, 0.4);
+    }
+
+    .no-orders {
+        text-align: center;
+        background: white;
+        padding: 60px 40px;
+        border-radius: 20px;
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
+    }
+
+    .no-orders h2 {
+        color: #333;
+        font-size: 2rem;
+        margin-bottom: 15px;
+    }
+
+    .no-orders p {
+        color: #666;
+        font-size: 1.1rem;
+        margin-bottom: 30px;
+    }
+
+    .progress-section {
+        padding: 20px 25px;
+        background: #f8f9fa;
+        border-top: 2px solid #e9ecef;
+    }
+
+    .progress-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #666;
+        margin-bottom: 8px;
+    }
+
+    .progress-bar-custom {
+        height: 8px;
+        background: #e9ecef;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        border-radius: 10px;
+        transition: width 0.5s ease;
+    }
+
+    .progress-fill.pending {
+        width: 25%;
+        background: linear-gradient(90deg, #FF6B6B, #FF5252);
+    }
+
+    .progress-fill.confirmed {
+        width: 50%;
+        background: linear-gradient(90deg, #FFD93D, #FFC700);
+    }
+
+    .progress-fill.preparing {
+        width: 75%;
+        background: linear-gradient(90deg, #6BCF7F, #52B788);
+    }
+
+    .progress-fill.ready {
+        width: 100%;
+        background: linear-gradient(90deg, #4D96FF, #1E88E5);
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+    }
+
+    .back-button {
+        display: inline-block;
+        margin-top: 20px;
+        padding: 15px 30px;
+        background: white;
+        color: #667eea;
+        text-decoration: none;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .back-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    @media (max-width: 768px) {
+        .orders-header h1 {
+            font-size: 2.5rem;
+        }
+
+        .orders-container {
+            grid-template-columns: 1fr;
+        }
+
+        .item-grid {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        .order-footer {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block body %}
-<div class="container py-4">
-    <h1>📋 My Orders</h1>
-    <p class="text-muted">Track your order status in real-time</p>
+<div class="container py-5" style="max-width: 1400px;">
+    <!-- Header Section -->
+    <div class="orders-header">
+        <h1>🍽️ My Orders</h1>
+        <p>Track your delicious meals in real-time</p>
+    </div>
 
     {% if commandes is empty %}
-        <div class="alert alert-info mt-4">
-            <strong>No orders yet!</strong>
-            <a href="{{ path('app_customer_menu') }}" class="btn btn-primary ms-2">Start Ordering</a>
+        <!-- No Orders State -->
+        <div class="no-orders">
+            <h2>🛒 No Orders Yet!</h2>
+            <p>You haven't placed any orders yet. Let's fix that!</p>
+            <a href="{{ path('app_customer_menu') }}" class="btn-action" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; display: inline-block;">
+                🍴 Explore Our Menu
+            </a>
         </div>
     {% else %}
-        <div class="row mt-4" id="orders-container">
+        <!-- Orders Grid -->
+        <div class="orders-container">
             {% for commande in commandes %}
-                <div class="col-lg-6 mb-4 order-card" data-order-id="{{ commande.id }}">
-                    <div class="card shadow-sm h-100">
+                <div class="order-card">
+                    <!-- Order Header -->
+                    <div class="order-header {% if commande.statut == 'pending' %}pending{% elseif commande.statut == 'Order Confirmed' %}confirmed{% elseif commande.statut == 'Preparing' %}preparing{% elseif commande.statut == 'Ready for Delivery' %}ready{% endif %}">
+                        <div class="order-header-content">
+                            <div class="order-id-section">
+                                <h3>#{{ commande.id }}</h3>
+                                <small>{{ commande.dateHeure|date('d/m/Y H:i') }}</small>
+                            </div>
+                            <span class="status-badge">
+                                {% if commande.statut == 'pending' %}
+                                    ⏳ Pending
+                                {% elseif commande.statut == 'Order Confirmed' %}
+                                    ✓ Confirmed
+                                {% elseif commande.statut == 'Preparing' %}
+                                    👨‍🍳 Preparing
+                                {% elseif commande.statut == 'Ready for Delivery' %}
+                                    📦 Ready
+                                {% else %}
+                                    {{ commande.statut }}
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Dishes Grid -->
+                    <div class="order-items">
+                        <div class="item-grid">
+                            {% for ligneCommande in commande.ligneCommandes %}
+                                <div class="dish-box">
+                                    {% if ligneCommande.plat.image %}
+                                        <img src="{{ ligneCommande.plat.image }}" alt="{{ ligneCommande.plat.nomPlat }}" class="dish-image">
+                                    {% else %}
+                                        <div class="dish-image" style="display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea, #764ba2); color: white; font-size: 1.5rem;">
+                                            🍲
+                                        </div>
+                                    {% endif %}
+                                    <p class="dish-name">{{ ligneCommande.plat.nomPlat }}</p>
+                                    <div class="dish-qty">
+                                        <strong>×{{ ligneCommande.quantite }}</strong> | €{{ (ligneCommande.plat.prix * ligneCommande.quantite)|number_format(2, '.', ',') }}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="progress-section">
+                        <div class="progress-label">Order Progress</div>
+                        <div class="progress-bar-custom">
+                            <div class="progress-fill {% if commande.statut == 'pending' %}pending{% elseif commande.statut == 'Order Confirmed' %}confirmed{% elseif commande.statut == 'Preparing' %}preparing{% elseif commande.statut == 'Ready for Delivery' %}ready{% endif %}"></div>
+                        </div>
+                    </div>
+
+                    <!-- Order Summary -->
+                    <div class="order-summary">
+                        <div class="summary-row">
+                            <span>Items:</span>
+                            <strong>{{ commande.ligneCommandes|length }}</strong>
+                        </div>
+                        <div class="summary-row total">
+                            <span>Total:</span>
+                            <strong>€{{ commande.total|number_format(2, '.', ',') }}</strong>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="order-footer">
+                        <button class="btn-action btn-details" data-bs-toggle="modal" data-bs-target="#orderModal{{ commande.id }}">
+                            👁️ View Details
+                        </button>
+                        <a href="{{ path('app_customer_menu') }}" class="btn-action btn-reorder">
+                            🔄 Reorder
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Order Details Modal -->
+                <div class="modal fade" id="orderModal{{ commande.id }}" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Order #{{ commande.id }} - Full Details</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <p><strong>📅 Order Date:</strong><br>{{ commande.dateHeure|date('d/m/Y H:i:s') }}</p>
+                                        <p><strong>👤 Customer:</strong><br>{{ commande.client.prenom }} {{ commande.client.nom }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>📧 Email:</strong><br>{{ commande.client.email }}</p>
+                                        <p><strong>📍 Status:</strong><br>
+                                            <span class="badge" style="background: {% if commande.statut == 'pending' %}#FF6B6B{% elseif commande.statut == 'Order Confirmed' %}#FFD93D{% elseif commande.statut == 'Preparing' %}#6BCF7F{% else %}#4D96FF{% endif %}; padding: 8px 15px; font-size: 0.9rem;">
+                                                {{ commande.statut }}
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <hr>
+                                <h6 class="mb-3"><strong>📋 Order Items:</strong></h6>
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead style="background: #f8f9fa;">
+                                            <tr>
+                                                <th>🍽️ Dish</th>
+                                                <th class="text-end">💰 Price</th>
+                                                <th class="text-center">📦 Qty</th>
+                                                <th class="text-end">💵 Subtotal</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for ligneCommande in commande.ligneCommandes %}
+                                                <tr>
+                                                    <td>
+                                                        <strong>{{ ligneCommande.plat.nomPlat }}</strong><br>
+                                                        <small class="text-muted">{{ ligneCommande.plat.description }}</small>
+                                                    </td>
+                                                    <td class="text-end">€{{ ligneCommande.plat.prix|number_format(2, '.', ',') }}</td>
+                                                    <td class="text-center"><strong>{{ ligneCommande.quantite }}</strong></td>
+                                                    <td class="text-end">€{{ (ligneCommande.plat.prix * ligneCommande.quantite)|number_format(2, '.', ',') }}</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <hr>
+                                <div class="row">
+                                    <div class="col-md-6 ms-auto">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                            <strong>Subtotal:</strong>
+                                            <span>€{{ commande.total|number_format(2, '.', ',') }}</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; font-size: 1.2rem; border-top: 2px solid #667eea; padding-top: 10px;">
+                                            <strong>Total:</strong>
+                                            <strong style="color: #667eea;">€{{ commande.total|number_format(2, '.', ',') }}</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Back to Menu Link -->
+    <div style="text-align: center; margin-top: 40px;">
+        <a href="{{ path('app_customer_menu') }}" class="back-button">← Back to Menu</a>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-refresh order statuses every 3 seconds
+    setInterval(function() {
+        fetch('{{ path('app_customer_api_orders') }}')
+            .then(response => response.json())
+            .then(data => {
+                updateOrderStatuses(data.orders);
+            })
+            .catch(error => console.error('Error fetching orders:', error));
+    }, 3000);
+
+    function updateOrderStatuses(orders) {
+        orders.forEach(order => {
+            const orderCard = document.querySelector(`[data-order-id="${order.id}"]`);
+            if (orderCard) {
+                // Update status badge and header
+                const statusBadge = orderCard.querySelector('.status-badge');
+                const orderHeader = orderCard.querySelector('.order-header');
+                const progressFill = orderCard.querySelector('.progress-fill');
+                
+                if (statusBadge) {
+                    statusBadge.textContent = getStatusLabel(order.status);
+                }
+
+                // Update header and progress bar colors
+                const statusClasses = ['pending', 'confirmed', 'preparing', 'ready'];
+                statusClasses.forEach(cls => {
+                    orderHeader?.classList.remove(cls);
+                    progressFill?.classList.remove(cls);
+                });
+
+                const statusClass = getStatusClass(order.status);
+                orderHeader?.classList.add(statusClass);
+                progressFill?.classList.add(statusClass);
+            }
+        });
+    }
+
+    function getStatusLabel(status) {
+        const labels = {
+            'pending': '⏳ Pending',
+            'Order Confirmed': '✓ Confirmed',
+            'Preparing': '👨‍🍳 Preparing',
+            'Ready for Delivery': '📦 Ready'
+        };
+        return labels[status] || status;
+    }
+
+    function getStatusClass(status) {
+        const classes = {
+            'pending': 'pending',
+            'Order Confirmed': 'confirmed',
+            'Preparing': 'preparing',
+            'Ready for Delivery': 'ready'
+        };
+        return classes[status] || 'pending';
+    }
+});
+</script>
+
+{% endblock %}
                         <!-- Order Header with Status -->
                         <div class="card-header {% if commande.statut == 'pending' %}bg-danger{% elseif commande.statut == 'Order Confirmed' %}bg-warning{% elseif commande.statut == 'Preparing' %}bg-info{% elseif commande.statut == 'Ready for Delivery' %}bg-success{% else %}bg-secondary{% endif %} text-white d-flex justify-content-between align-items-center">
                             <div>
@@ -264,37 +832,4 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 }
 </style>
-{% endblock %}
-
-            </div>
-        </div>
-
-        <!-- Order 2 -->
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Order #002</h5>
-                    <span class="badge bg-success">Delivered</span>
-                </div>
-                <div class="card-body">
-                    <p><strong>Date:</strong> 2026-01-15 19:45</p>
-                    <p><strong>Total:</strong> $28.49</p>
-                    <hr>
-                    <h6>Items:</h6>
-                    <ul class="list-unstyled">
-                        <li>✓ Grilled Salmon x1</li>
-                        <li>✓ Caesar Salad x1</li>
-                    </ul>
-                </div>
-                <div class="card-footer bg-light">
-                    <a href="{{ path('app_customer_order_show', {'id': 2}) }}" class="btn btn-sm btn-info">View Details</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="mt-4">
-        <a href="{{ path('app_customer_menu') }}" class="btn btn-primary">← Back to Menu</a>
-    </div>
-</div>
 {% endblock %}

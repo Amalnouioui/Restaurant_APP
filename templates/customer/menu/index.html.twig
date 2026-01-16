@@ -2,46 +2,300 @@
 
 {% block title %}Menu - Restaurant{% endblock %}
 
+{% block stylesheets %}
+<style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .menu-header {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 40px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        text-align: center;
+    }
+
+    .menu-header h1 {
+        font-size: 3.5rem;
+        color: #333;
+        margin: 0;
+        font-weight: 800;
+    }
+
+    .menu-header p {
+        font-size: 1.1rem;
+        color: #666;
+        margin-top: 10px;
+    }
+
+    .dishes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 30px;
+        margin-bottom: 80px;
+    }
+
+    .dish-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: 3px solid transparent;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .dish-card:hover {
+        transform: translateY(-15px) scale(1.02);
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.2);
+        border-color: #667eea;
+    }
+
+    .dish-image-container {
+        width: 100%;
+        height: 220px;
+        overflow: hidden;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        position: relative;
+    }
+
+    .dish-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+    }
+
+    .dish-card:hover .dish-image {
+        transform: scale(1.1);
+    }
+
+    .dish-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 4rem;
+        color: white;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+
+    .dish-content {
+        padding: 25px;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .dish-name {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #333;
+        margin: 0 0 10px 0;
+    }
+
+    .dish-description {
+        font-size: 0.95rem;
+        color: #666;
+        margin: 0 0 15px 0;
+        flex-grow: 1;
+    }
+
+    .dish-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        border-top: 2px solid #f0f0f0;
+        padding-top: 15px;
+    }
+
+    .dish-price {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #667eea;
+    }
+
+    .quantity-section {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .quantity-input {
+        width: 50px;
+        padding: 8px 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-weight: 600;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .quantity-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+    }
+
+    .add-btn {
+        padding: 10px 18px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+
+    .add-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .add-btn:active {
+        transform: translateY(0);
+    }
+
+    .floating-cart {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        display: flex;
+        gap: 12px;
+        z-index: 1000;
+    }
+
+    .cart-button {
+        padding: 16px 28px;
+        border: none;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        text-decoration: none;
+    }
+
+    .btn-view-cart {
+        background: white;
+        color: #667eea;
+        border: 2px solid #667eea;
+    }
+
+    .btn-view-cart:hover {
+        background: #667eea;
+        color: white;
+        transform: translateY(-3px);
+    }
+
+    .btn-checkout {
+        background: linear-gradient(135deg, #f093fb, #f5576c);
+        color: white;
+    }
+
+    .btn-checkout:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(245, 87, 108, 0.4);
+    }
+
+    .no-dishes {
+        text-align: center;
+        background: white;
+        padding: 60px 40px;
+        border-radius: 20px;
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
+    }
+
+    @media (max-width: 768px) {
+        .menu-header h1 {
+            font-size: 2.5rem;
+        }
+
+        .dishes-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .floating-cart {
+            bottom: 20px;
+            right: 20px;
+            flex-direction: column;
+        }
+
+        .cart-button {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block body %}
-<div class="container mt-5 pb-6">
-    <h1 class="mb-4">Our Menu</h1>
+<div class="container py-5" style="max-width: 1400px;">
+    <!-- Header -->
+    <div class="menu-header">
+        <h1>🍽️ Our Menu</h1>
+        <p>Delicious dishes prepared fresh for you</p>
+    </div>
 
     {% if plats is empty %}
-        <div class="alert alert-info">No dishes available.</div>
+        <div class="no-dishes">
+            <h2>📭 No Dishes Available</h2>
+            <p>Please try again later.</p>
+        </div>
     {% else %}
-        <div class="row">
+        <!-- Dishes Grid -->
+        <div class="dishes-grid">
             {% for plat in plats %}
-                <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card h-100 shadow-sm">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ plat.nomPlat }}</h5>
-                            <p class="card-text text-muted">{{ plat.description }}</p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="h5 mb-0">€{{ plat.prix|number_format(2, '.', ',') }}</span>
-                                <div class="input-group" style="width: 130px;">
-                                    <input type="number" class="form-control quantity-input" value="1" min="1" data-plat-id="{{ plat.id }}">
-                                    <button class="btn btn-primary add-to-cart-btn" data-plat-id="{{ plat.id }}" type="button">
-                                        Add
-                                    </button>
-                                </div>
+                <div class="dish-card">
+                    <!-- Image -->
+                    <div class="dish-image-container">
+                        {% if plat.image %}
+                            <img src="{{ plat.image }}" alt="{{ plat.nomPlat }}" class="dish-image">
+                        {% else %}
+                            <div class="dish-placeholder">🍲</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Content -->
+                    <div class="dish-content">
+                        <h3 class="dish-name">{{ plat.nomPlat }}</h3>
+                        <p class="dish-description">{{ plat.description }}</p>
+
+                        <!-- Footer -->
+                        <div class="dish-footer">
+                            <span class="dish-price">€{{ plat.prix|number_format(2, '.', ',') }}</span>
+                            <div class="quantity-section">
+                                <input type="number" class="quantity-input" value="1" min="1" data-plat-id="{{ plat.id }}">
+                                <button class="add-btn add-to-cart-btn" data-plat-id="{{ plat.id }}">
+                                    ➕
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
             {% endfor %}
         </div>
-
-        <div class="fixed-bottom mb-4">
-            <div class="container d-flex justify-content-end gap-2">
-                <button class="btn btn-outline-secondary btn-lg" id="view-cart-btn">
-                    View Cart
-                </button>
-                <button class="btn btn-success btn-lg" id="checkout-btn">
-                    Proceed to Checkout
-                </button>
-            </div>
-        </div>
     {% endif %}
+</div>
+
+<!-- Floating Cart Buttons -->
+<div class="floating-cart">
+    <button class="cart-button btn-view-cart" id="view-cart-btn">
+        🛒 View Cart
+    </button>
+    <button class="cart-button btn-checkout" id="checkout-btn">
+        ✅ Checkout
+    </button>
 </div>
 
 <script>
@@ -70,15 +324,15 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showNotification('Dish added to cart!', 'success');
+                    showNotification('✅ Dish added to cart!', 'success');
                     quantityInput.value = 1;
                 } else {
-                    showNotification('Error adding to cart', 'danger');
+                    showNotification('❌ Error adding to cart', 'danger');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                showNotification('Error adding to cart', 'danger');
+                showNotification('❌ Error adding to cart', 'danger');
             });
         });
     });
@@ -100,17 +354,17 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showNotification('Order created successfully! Order ID: ' + data.commandeId, 'success');
+                showNotification('🎉 Order created! Redirecting...', 'success');
                 setTimeout(() => {
                     window.location.href = '{{ path('app_customer_order_list') }}';
                 }, 2000);
             } else {
-                showNotification('Error: ' + (data.error || 'Unknown error'), 'danger');
+                showNotification('❌ Error: ' + (data.error || 'Unknown error'), 'danger');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            showNotification('Error creating order', 'danger');
+            showNotification('❌ Error creating order', 'danger');
         });
     });
 
@@ -123,42 +377,16 @@ document.addEventListener('DOMContentLoaded', function() {
             ${message}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         `;
+        alertDiv.style.position = 'fixed';
+        alertDiv.style.top = '20px';
+        alertDiv.style.right = '20px';
+        alertDiv.style.zIndex = '10000';
+        alertDiv.style.minWidth = '300px';
         
-        const container = document.querySelector('.container');
-        container.insertBefore(alertDiv, container.firstChild);
+        document.body.appendChild(alertDiv);
         
         setTimeout(() => alertDiv.remove(), 5000);
     }
 });
 </script>
-
-<style>
-.fixed-bottom {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: white;
-    padding-top: 1rem;
-    border-top: 1px solid #ddd;
-    z-index: 1000;
-}
-
-.pb-6 {
-    padding-bottom: 150px;
-}
-
-.card {
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
-}
-
-.quantity-input {
-    text-align: center;
-}
-</style>
 {% endblock %}
