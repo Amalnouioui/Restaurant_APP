@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Order Details - Restaurant{% endblock %}
+{% block title %}Order #{{ commande.id }} - Details{% endblock %}
 
 {% block body %}
 <div class="container py-4">
@@ -9,18 +9,40 @@
     <div class="row">
         <div class="col-lg-8">
             <div class="card shadow-sm mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">Order #00{{ order_id }}</h4>
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Order #{{ commande.id }}</h4>
+                    {% if commande.statut == 'CONFIRMED' %}
+                        <span class="badge bg-success fs-6">{{ commande.statut }}</span>
+                    {% elseif commande.statut == 'IN_PROGRESS' %}
+                        <span class="badge bg-warning fs-6">{{ commande.statut }}</span>
+                    {% elseif commande.statut == 'READY' %}
+                        <span class="badge bg-info fs-6">{{ commande.statut }}</span>
+                    {% elseif commande.statut == 'SERVED' %}
+                        <span class="badge bg-secondary fs-6">{{ commande.statut }}</span>
+                    {% elseif commande.statut == 'CANCELLED' %}
+                        <span class="badge bg-danger fs-6">{{ commande.statut }}</span>
+                    {% else %}
+                        <span class="badge bg-warning fs-6">{{ commande.statut }}</span>
+                    {% endif %}
                 </div>
                 <div class="card-body">
                     <div class="row mb-4">
                         <div class="col-md-6">
-                            <h6 class="text-muted">Order Date</h6>
-                            <p>2026-01-16 14:30</p>
+                            <h6 class="text-muted">Order Date & Time</h6>
+                            <p>{{ commande.dateHeure|date('F d, Y - H:i') }}</p>
                         </div>
                         <div class="col-md-6">
-                            <h6 class="text-muted">Estimated Time</h6>
-                            <p>30 minutes</p>
+                            <h6 class="text-muted">Payment</h6>
+                            <p>
+                                {% if commande.paymentMethod == 'CARD' %}
+                                    💳 Card - 
+                                {% else %}
+                                    💵 Cash - 
+                                {% endif %}
+                                <span class="badge bg-{{ commande.paymentStatus == 'PAID' ? 'success' : 'warning' }}">
+                                    {{ commande.paymentStatus }}
+                                </span>
+                            </p>
                         </div>
                     </div>
 
@@ -35,62 +57,74 @@
                             </tr>
                         </thead>
                         <tbody>
+                            {% for ligne in commande.ligneCommandes %}
                             <tr>
-                                <td>Spaghetti Carbonara</td>
-                                <td>2</td>
-                                <td>$12.99</td>
-                                <td>$25.98</td>
+                                <td>{{ ligne.plat.nomPlat }}</td>
+                                <td>{{ ligne.quantite }}</td>
+                                <td>${{ ligne.plat.prix|number_format(2, '.', ',') }}</td>
+                                <td>${{ (ligne.plat.prix * ligne.quantite)|number_format(2, '.', ',') }}</td>
                             </tr>
-                            <tr>
-                                <td>Caesar Salad</td>
-                                <td>1</td>
-                                <td>$9.99</td>
-                                <td>$9.99</td>
-                            </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
 
                     <div class="text-end">
-                        <p class="fs-5"><strong>Total: $35.97</strong></p>
+                        <p class="fs-5"><strong>Total: ${{ commande.total|number_format(2, '.', ',') }}</strong></p>
                     </div>
                 </div>
             </div>
 
-            <div class="card shadow-sm">
+            <div class="card shadow-sm mt-4">
                 <div class="card-header bg-info text-white">
-                    <h5 class="mb-0">Order Status</h5>
+                    <h5 class="mb-0">Order Status Timeline</h5>
                 </div>
                 <div class="card-body">
                     <div class="timeline">
-                        <div class="timeline-item mb-4">
-                            <div class="d-flex">
-                                <div class="timeline-marker bg-success text-white rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">✓</div>
-                                <div class="ms-3">
-                                    <h6>Order Confirmed</h6>
-                                    <p class="text-muted small">2026-01-16 14:30</p>
+                        {% set statuses = ['PENDING', 'CONFIRMED', 'IN_PROGRESS', 'READY', 'SERVED'] %}
+                        {% set statusReached = false %}
+                        
+                        {% for status in statuses %}
+                            {% if not statusReached %}
+                                {% if commande.statut == status %}
+                                    {% set statusReached = true %}
+                                    <div class="timeline-item mb-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="timeline-marker bg-warning text-dark rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                                ⏳
+                                            </div>
+                                            <div class="ms-3">
+                                                <h6 class="mb-0">{{ status }}</h6>
+                                                <p class="text-muted small mb-0">Current status</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="timeline-item mb-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="timeline-marker bg-success text-white rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                                ✓
+                                            </div>
+                                            <div class="ms-3">
+                                                <h6 class="mb-0">{{ status }}</h6>
+                                                <p class="text-muted small mb-0">Completed</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <div class="timeline-item mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="timeline-marker bg-secondary rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                            •
+                                        </div>
+                                        <div class="ms-3">
+                                            <h6 class="mb-0 text-muted">{{ status }}</h6>
+                                            <p class="text-muted small mb-0">Pending</p>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-
-                        <div class="timeline-item mb-4">
-                            <div class="d-flex">
-                                <div class="timeline-marker bg-warning text-dark rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">⚙️</div>
-                                <div class="ms-3">
-                                    <h6>Preparing</h6>
-                                    <p class="text-muted small">In progress...</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="timeline-item">
-                            <div class="d-flex">
-                                <div class="timeline-marker bg-secondary rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">📦</div>
-                                <div class="ms-3">
-                                    <h6>Ready for Delivery</h6>
-                                    <p class="text-muted small">Pending</p>
-                                </div>
-                            </div>
-                        </div>
+                            {% endif %}
+                        {% endfor %}
                     </div>
                 </div>
             </div>
@@ -99,21 +133,29 @@
         <div class="col-lg-4">
             <div class="card shadow-sm sticky-top" style="top: 20px;">
                 <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">Delivery Info</h5>
+                    <h5 class="mb-0">Order Summary</h5>
                 </div>
                 <div class="card-body">
-                    <p><strong>Address:</strong></p>
-                    <p>123 Main Street<br>New York, NY 10001</p>
+                    <p><strong>Order Number:</strong></p>
+                    <h4 class="text-primary">#{{ commande.id }}</h4>
                     
                     <hr>
                     
-                    <p><strong>Estimated Time:</strong></p>
-                    <h4 class="text-danger">~28 minutes</h4>
+                    <p><strong>Total Amount:</strong></p>
+                    <h4 class="text-success">${{ commande.total|number_format(2, '.', ',') }}</h4>
                     
-                    <button class="btn btn-primary w-100 mt-3">Track Live</button>
+                    <hr>
+                    
+                    <p><strong>Payment:</strong></p>
+                    <p>{{ commande.paymentMethod }} - {{ commande.paymentStatus }}</p>
+                    
+                    <a href="{{ path('app_customer_order_ticket', {id: commande.id}) }}" class="btn btn-primary w-100 mt-3" target="_blank">
+                        View Receipt
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
+

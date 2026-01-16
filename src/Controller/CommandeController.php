@@ -15,10 +15,36 @@ use Symfony\Component\Routing\Attribute\Route;
 class CommandeController extends AbstractController
 {
     #[Route('/', name: 'app_commande_index', methods: ['GET'])]
-    public function index(CommandeRepository $commandeRepository): Response
+    public function index(Request $request, CommandeRepository $commandeRepository): Response
     {
+        $status = $request->query->get('status');
+        $orderNumber = $request->query->get('order_number');
+        $date = $request->query->get('date');
+        
+        if ($status) {
+            $commandes = $commandeRepository->findBy(['statut' => $status], ['dateHeure' => 'DESC']);
+        } elseif ($orderNumber) {
+            $commandes = $commandeRepository->findBy(['id' => $orderNumber]);
+        } elseif ($date) {
+            $startDate = new \DateTime($date . ' 00:00:00');
+            $endDate = new \DateTime($date . ' 23:59:59');
+            $commandes = $commandeRepository->createQueryBuilder('c')
+                ->where('c.dateHeure BETWEEN :start AND :end')
+                ->setParameter('start', $startDate)
+                ->setParameter('end', $endDate)
+                ->orderBy('c.dateHeure', 'DESC')
+                ->getQuery()
+                ->getResult();
+        } else {
+            // Default: show all orders
+            $commandes = $commandeRepository->findBy([], ['dateHeure' => 'DESC']);
+        }
+        
         return $this->render('commande/index.html.twig', [
-            'commandes' => $commandeRepository->findAll(),
+            'commandes' => $commandes,
+            'current_status' => $status,
+            'current_order_number' => $orderNumber,
+            'current_date' => $date,
         ]);
     }
 
@@ -72,8 +98,32 @@ class CommandeController extends AbstractController
     public function delete(Request $request, Commande $commande, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete'.$commande->getId(), $request->getPayload()->get('_token'))) {
+            $orderId = $commande->getId();
             $entityManager->remove($commande);
             $entityManager->flush();
+            
+            $this->addFlash('success', 'Order #' . $orderId . ' has been successfully deleted');
+        } else {
+            $this->addFlash('error', 'Invalid security token. Please try again.');
+        }
+
+        return $this->redirectToRoute('app_commande_index', [], Response::HTTP_SEE_OTHER);
+    }
+
+    #[Route('/{id}/status', name: 'app_commande_update_status', methods: ['POST'])]
+    public function updateStatus(Request $request, Commande $commande, EntityManagerInterface $entityManager): Response
+    {
+        $newStatus = $request->request->get('status');
+        
+        $validStatuses = ['PENDING', 'CONFIRMED', 'IN_PROGRESS', 'READY', 'SERVED', 'CANCELLED'];
+        
+        if (in_array($newStatus, $validStatuses)) {
+            $commande->setStatut($newStatus);
+            $entityManager->flush();
+            
+            $this->addFlash('success', 'Order status updated to ' . $newStatus);
+        } else {
+            $this->addFlash('error', 'Invalid status');
         }
 
         return $this->redirectToRoute('app_commande_index', [], Response::HTTP_SEE_OTHER);
