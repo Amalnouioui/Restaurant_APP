@@ -7,6 +7,7 @@ use App\Entity\Commande;
 use App\Entity\LigneCommande;
 use App\Repository\PlatRepository;
 use App\Repository\CommandeRepository;
+use App\Repository\ClientRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -236,16 +237,17 @@ final class CartController extends AbstractController
         $delivery = 5.00;
         $total = $subtotal + $tax + $delivery;
 
-        // Create or get walk-in client
+        // Get client record for logged-in user
+        $user = $this->getUser();
+        if (!$user) {
+            throw $this->createAccessDeniedException('You must be logged in to place an order');
+        }
+
         $clientRepo = $em->getRepository(Client::class);
-        $client = $clientRepo->findOneBy(['email' => 'walkin@restaurant.local']);
+        $client = $clientRepo->findOneBy(['user' => $user]);
         
         if (!$client) {
-            $client = new Client();
-            $client->setNom('Walk-In');
-            $client->setPrenom('Customer');
-            $client->setEmail('walkin@restaurant.local');
-            $em->persist($client);
+            throw $this->createNotFoundException('Client record not found. Please contact support.');
         }
 
         // Create order

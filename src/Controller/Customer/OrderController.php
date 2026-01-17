@@ -14,18 +14,34 @@ use Symfony\Component\Routing\Attribute\Route;
 final class OrderController extends AbstractController
 {
     #[Route('/', name: 'app_customer_order_list')]
-    public function list(CommandeRepository $commandeRepository, ClientRepository $clientRepository): Response
-    {
-        // For walk-in customers, show all orders
-        // In a real app, you'd filter by session or authenticated user
-        $client = $clientRepository->findOneBy(['email' => 'walkin@restaurant.local']);
+    public function list(
+        CommandeRepository $commandeRepository, 
+        ClientRepository $clientRepository
+    ): Response {
+        $user = $this->getUser();
+        
+        if (!$user) {
+            throw $this->createAccessDeniedException('You must be logged in to view orders');
+        }
+
+        // Find client record for the logged-in user
+        $client = $clientRepository->findOneBy(['user' => $user]);
         
         $commandes = [];
         if ($client) {
-            $commandes = $commandeRepository->findBy(
-                ['client' => $client->getId()],
-                ['dateHeure' => 'DESC']
-            );
+            // For walk-in customers, filter by session ID
+            if ($user->getEmail() === 'walkin@restaurant.local') {
+                $commandes = $commandeRepository->findBy(
+                    ['client' => $client],
+                    ['dateHeure' => 'DESC']
+                );
+            } else {
+                // For regular clients, show all their orders
+                $commandes = $commandeRepository->findBy(
+                    ['client' => $client],
+                    ['dateHeure' => 'DESC']
+                );
+            }
         }
 
         return $this->render('customer/order/list.html.twig', [
