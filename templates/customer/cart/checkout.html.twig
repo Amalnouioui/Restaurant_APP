@@ -5,132 +5,243 @@
 {% block body %}
 <div class="container py-4">
     <h1>💳 Checkout</h1>
+    <p class="text-muted">Complete your order - No delivery address needed (in-restaurant ordering)</p>
 
-    <div class="row">
-        <div class="col-lg-8">
-            <!-- Delivery Address -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">📍 Delivery Address</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">First Name</label>
-                            <input type="text" class="form-control" placeholder="Enter your first name">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Last Name</label>
-                            <input type="text" class="form-control" placeholder="Enter your last name">
-                        </div>
+    <form method="post" action="{{ path('app_customer_cart_process') }}" id="checkoutForm">
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- Payment Method -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">💳 Payment Method</h5>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Street Address</label>
-                        <input type="text" class="form-control" placeholder="123 Main Street">
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">City</label>
-                            <input type="text" class="form-control" placeholder="New York">
+                    <div class="card-body">
+                        <div class="form-check mb-3 p-3 border rounded">
+                            <input class="form-check-input" type="radio" name="payment_method" value="CARD" id="paymentCard" checked onchange="toggleCardForm()">
+                            <label class="form-check-label" for="paymentCard">
+                                <strong>💳 Credit/Debit Card</strong>
+                                <p class="text-muted mb-0 small">Pay now securely with your card</p>
+                            </label>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Zip Code</label>
-                            <input type="text" class="form-control" placeholder="10001">
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Payment Method -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">💳 Payment Method</h5>
-                </div>
-                <div class="card-body">
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="radio" name="payment" id="payment1" checked>
-                        <label class="form-check-label" for="payment1">
-                            <strong>Credit Card</strong>
-                        </label>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Card Number</label>
-                        <input type="text" class="form-control" placeholder="1234 5678 9012 3456">
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Expiry Date</label>
-                            <input type="text" class="form-control" placeholder="MM/YY">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">CVV</label>
-                            <input type="text" class="form-control" placeholder="123">
-                        </div>
-                    </div>
+                        <!-- Card Payment Form -->
+                        <div id="cardPaymentForm" class="mt-4">
+                            <div class="card border-primary">
+                                <div class="card-body">
+                                    <h6 class="mb-3">Card Details</h6>
+                                    
+                                    <div class="mb-3">
+                                        <label for="cardholderName" class="form-label">Cardholder Name <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="cardholderName" name="cardholder_name" placeholder="John Doe" pattern="[A-Za-z\s]+" maxlength="50">
+                                        <div class="invalid-feedback">Please enter a valid name (letters and spaces only)</div>
+                                    </div>
 
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="payment" id="payment2">
-                        <label class="form-check-label" for="payment2">
-                            <strong>Cash on Delivery</strong>
-                        </label>
-                    </div>
-                </div>
-            </div>
+                                    <div class="mb-3">
+                                        <label for="cardNumber" class="form-label">Card Number <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="cardNumber" name="card_number" placeholder="4242 4242 4242 4242" maxlength="19" onkeyup="formatCardNumber(this)">
+                                        <div class="invalid-feedback">Please enter a valid 16-digit card number</div>
+                                        <small class="text-muted">Test card: 4242 4242 4242 4242</small>
+                                    </div>
 
-            <!-- Special Instructions -->
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">📝 Special Instructions</h5>
-                </div>
-                <div class="card-body">
-                    <textarea class="form-control" rows="3" placeholder="Any special instructions for your order..."></textarea>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="expiryDate" class="form-label">Expiration Date <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="expiryDate" name="expiry_date" placeholder="MM / YY" maxlength="7" onkeyup="formatExpiryDate(this)">
+                                            <div class="invalid-feedback">Please enter a valid future date (MM/YY)</div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="cvv" class="form-label">CVV <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="cvv" name="cvv" placeholder="123" maxlength="3" pattern="\d{3}">
+                                            <div class="invalid-feedback">Please enter a valid 3-digit CVV</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="alert alert-info small">
+                                        <i class="bi bi-shield-check"></i> Your payment information is encrypted and secure
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-check p-3 border rounded mt-3">
+                            <input class="form-check-input" type="radio" name="payment_method" value="CASH" id="paymentCash" onchange="toggleCardForm()">
+                            <label class="form-check-label" for="paymentCash">
+                                <strong>💵 Cash at Counter</strong>
+                                <p class="text-muted mb-0 small">Pay at the cashier when you pick up your order</p>
+                            </label>
+                        </div>
+
+                        <div class="alert alert-info mt-3">
+                            <strong>ℹ️ How it works:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li><strong>Card:</strong> Payment processed immediately, order sent to kitchen</li>
+                                <li><strong>Cash:</strong> You'll receive an order number to pay at the counter</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="col-lg-4">
-            <!-- Order Summary -->
-            <div class="card shadow-sm sticky-top" style="top: 20px;">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">Order Summary</h5>
-                </div>
-                <div class="card-body">
-                    <h6>Items:</h6>
-                    <div class="list-group list-group-flush mb-3">
-                        <div class="list-group-item d-flex justify-content-between">
-                            <span>Spaghetti Carbonara x2</span>
-                            <span>$25.98</span>
+            <div class="col-lg-4">
+                <!-- Order Summary -->
+                <div class="card shadow-sm sticky-top" style="top: 20px;">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Order Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <h6>Items:</h6>
+                        <div class="list-group list-group-flush mb-3">
+                            {% for item in cartItems %}
+                                <div class="list-group-item d-flex justify-content-between px-0">
+                                    <span>{{ item.plat.nomPlat }} x{{ item.quantity }}</span>
+                                    <span>${{ item.subtotal|number_format(2, '.', ',') }}</span>
+                                </div>
+                            {% endfor %}
                         </div>
-                        <div class="list-group-item d-flex justify-content-between">
-                            <span>Caesar Salad x1</span>
-                            <span>$9.99</span>
+
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal:</span>
+                            <span>${{ subtotal|number_format(2, '.', ',') }}</span>
                         </div>
-                    </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Tax (10%):</span>
+                            <span>${{ tax|number_format(2, '.', ',') }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span>Service:</span>
+                            <span>${{ delivery|number_format(2, '.', ',') }}</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between fs-5 mb-4">
+                            <strong>Total:</strong>
+                            <strong class="text-success">${{ total|number_format(2, '.', ',') }}</strong>
+                        </div>
 
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Subtotal:</span>
-                        <span>$35.97</span>
+                        <button type="submit" class="btn btn-success btn-lg w-100" id="submitBtn">
+                            <span id="btnTextCard">💳 Pay ${{ total|number_format(2, '.', ',') }}</span>
+                            <span id="btnTextCash" style="display:none;">✓ Place Order</span>
+                        </button>
+                        
+                        <a href="{{ path('app_customer_cart_view') }}" class="btn btn-outline-secondary w-100 mt-2">
+                            ← Back to Cart
+                        </a>
                     </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Tax:</span>
-                        <span>$3.60</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-3">
-                        <span>Delivery:</span>
-                        <span>$5.00</span>
-                    </div>
-                    <hr>
-                    <div class="d-flex justify-content-between fs-5 mb-4">
-                        <strong>Total:</strong>
-                        <strong class="text-success">$44.57</strong>
-                    </div>
-
-                    <button class="btn btn-success btn-lg w-100">
-                        ✓ Place Order
-                    </button>
                 </div>
             </div>
         </div>
-    </div>
+    </form>
 </div>
+
+<script>
+function toggleCardForm() {
+    const isCard = document.getElementById('paymentCard').checked;
+    const cardForm = document.getElementById('cardPaymentForm');
+    const btnTextCard = document.getElementById('btnTextCard');
+    const btnTextCash = document.getElementById('btnTextCash');
+    
+    if (isCard) {
+        cardForm.style.display = 'block';
+        btnTextCard.style.display = 'inline';
+        btnTextCash.style.display = 'none';
+        // Make card fields required
+        document.getElementById('cardholderName').required = true;
+        document.getElementById('cardNumber').required = true;
+        document.getElementById('expiryDate').required = true;
+        document.getElementById('cvv').required = true;
+    } else {
+        cardForm.style.display = 'none';
+        btnTextCard.style.display = 'none';
+        btnTextCash.style.display = 'inline';
+        // Remove required from card fields
+        document.getElementById('cardholderName').required = false;
+        document.getElementById('cardNumber').required = false;
+        document.getElementById('expiryDate').required = false;
+        document.getElementById('cvv').required = false;
+    }
+}
+
+function formatCardNumber(input) {
+    let value = input.value.replace(/\s/g, '');
+    let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+    input.value = formattedValue;
+}
+
+function formatExpiryDate(input) {
+    let value = input.value.replace(/\s/g, '').replace('/', '');
+    if (value.length >= 2) {
+        input.value = value.slice(0, 2) + ' / ' + value.slice(2, 4);
+    } else {
+        input.value = value;
+    }
+}
+
+document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+    const isCard = document.getElementById('paymentCard').checked;
+    
+    if (isCard) {
+        const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+        const expiryDate = document.getElementById('expiryDate').value;
+        const cvv = document.getElementById('cvv').value;
+        const cardholderName = document.getElementById('cardholderName').value;
+        
+        let isValid = true;
+        
+        // Validate cardholder name
+        if (!/^[A-Za-z\s]+$/.test(cardholderName) || cardholderName.trim() === '') {
+            document.getElementById('cardholderName').classList.add('is-invalid');
+            isValid = false;
+        } else {
+            document.getElementById('cardholderName').classList.remove('is-invalid');
+        }
+        
+        // Validate card number (16 digits)
+        if (!/^\d{16}$/.test(cardNumber)) {
+            document.getElementById('cardNumber').classList.add('is-invalid');
+            isValid = false;
+        } else {
+            document.getElementById('cardNumber').classList.remove('is-invalid');
+        }
+        
+        // Validate expiry date
+        const expiryMatch = expiryDate.match(/^(\d{2})\s\/\s(\d{2})$/);
+        if (expiryMatch) {
+            const month = parseInt(expiryMatch[1]);
+            const year = parseInt('20' + expiryMatch[2]);
+            const now = new Date();
+            const expiry = new Date(year, month - 1);
+            
+            if (month < 1 || month > 12 || expiry < now) {
+                document.getElementById('expiryDate').classList.add('is-invalid');
+                isValid = false;
+            } else {
+                document.getElementById('expiryDate').classList.remove('is-invalid');
+            }
+        } else {
+            document.getElementById('expiryDate').classList.add('is-invalid');
+            isValid = false;
+        }
+        
+        // Validate CVV
+        if (!/^\d{3}$/.test(cvv)) {
+            document.getElementById('cvv').classList.add('is-invalid');
+            isValid = false;
+        } else {
+            document.getElementById('cvv').classList.remove('is-invalid');
+        }
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Please fill in all card details correctly');
+            return false;
+        }
+        
+        // Show processing message
+        document.getElementById('submitBtn').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing payment...';
+        document.getElementById('submitBtn').disabled = true;
+    }
+});
+
+// Initialize on page load
+toggleCardForm();
+</script>
 {% endblock %}

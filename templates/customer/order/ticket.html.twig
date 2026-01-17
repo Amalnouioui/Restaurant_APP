@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt #{{ commande.id }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Courier New', 'DejaVu Sans Mono', monospace;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .receipt-container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .receipt {
+            border: 2px dashed #333;
+            padding: 20px;
+            font-size: 14px;
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            font-size: 12px;
+            margin: 3px 0;
+        }
+        
+        .order-info {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #333;
+        }
+        
+        .order-info div {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            font-size: 13px;
+        }
+        
+        .items {
+            margin-bottom: 15px;
+        }
+        
+        .items h3 {
+            text-align: center;
+            font-size: 16px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        
+        .item {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            font-size: 13px;
+        }
+        
+        .item-name {
+            flex: 1;
+        }
+        
+        .item-qty {
+            width: 50px;
+            text-align: center;
+        }
+        
+        .item-price {
+            width: 80px;
+            text-align: right;
+        }
+        
+        .separator {
+            border-top: 1px dashed #333;
+            margin: 10px 0;
+        }
+        
+        .totals {
+            padding-top: 10px;
+            border-top: 2px solid #333;
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            font-size: 13px;
+        }
+        
+        .total-row.grand-total {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px solid #333;
+        }
+        
+        .payment-status {
+            text-align: center;
+            margin: 15px 0;
+            padding: 10px;
+            background: #f0f0f0;
+            border: 1px solid #333;
+            font-size: 13px;
+        }
+        
+        .payment-status.paid {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .payment-status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 2px dashed #333;
+            font-size: 11px;
+        }
+        
+        .footer p {
+            margin: 5px 0;
+        }
+        
+        .barcode {
+            text-align: center;
+            font-size: 32px;
+            letter-spacing: 2px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        
+        .action-buttons {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        @media print {
+            .action-buttons {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="receipt-container">
+        <div class="receipt">
+        <div class="header">
+            <h1>🍽️ RESTAURANT</h1>
+            <p>123 Main Street</p>
+            <p>Tel: (555) 123-4567</p>
+            <p>www.restaurant.local</p>
+        </div>
+        
+        <div class="order-info">
+            <div>
+                <strong>Order #:</strong>
+                <span>{{ commande.id }}</span>
+            </div>
+            <div>
+                <strong>Date:</strong>
+                <span>{{ commande.dateHeure|date('m/d/Y') }}</span>
+            </div>
+            <div>
+                <strong>Time:</strong>
+                <span>{{ commande.dateHeure|date('H:i') }}</span>
+            </div>
+            <div>
+                <strong>Cashier:</strong>
+                <span>Walk-In POS</span>
+            </div>
+        </div>
+        
+        <div class="items">
+            <h3>━━━ ITEMS ━━━</h3>
+            {% for ligne in commande.ligneCommandes %}
+                <div class="item">
+                    <div class="item-name">{{ ligne.plat.nomPlat }}</div>
+                    <div class="item-qty">x{{ ligne.quantite }}</div>
+                    <div class="item-price">${{ (ligne.plat.prix * ligne.quantite)|number_format(2, '.', ',') }}</div>
+                </div>
+                <div style="font-size: 12px; color: #666; margin-left: 10px;">
+                    @ ${{ ligne.plat.prix|number_format(2, '.', ',') }} each
+                </div>
+            {% endfor %}
+        </div>
+        
+        <div class="totals">
+            {% set subtotal = 0 %}
+            {% for ligne in commande.ligneCommandes %}
+                {% set subtotal = subtotal + (ligne.plat.prix * ligne.quantite) %}
+            {% endfor %}
+            {% set tax = subtotal * 0.10 %}
+            {% set service = 5.00 %}
+            
+            <div class="total-row">
+                <span>Subtotal:</span>
+                <span>${{ subtotal|number_format(2, '.', ',') }}</span>
+            </div>
+            <div class="total-row">
+                <span>Tax (10%):</span>
+                <span>${{ tax|number_format(2, '.', ',') }}</span>
+            </div>
+            <div class="total-row">
+                <span>Service:</span>
+                <span>${{ service|number_format(2, '.', ',') }}</span>
+            </div>
+            <div class="total-row grand-total">
+                <span>TOTAL:</span>
+                <span>${{ commande.total|number_format(2, '.', ',') }}</span>
+            </div>
+        </div>
+        
+        <div class="payment-status {{ commande.paymentStatus == 'PAID' ? 'paid' : 'pending' }}">
+            {% if commande.paymentMethod == 'CARD' %}
+                <strong>✓ PAID - CARD</strong><br>
+                Payment Status: {{ commande.paymentStatus }}
+            {% else %}
+                <strong>⏳ CASH PAYMENT</strong><br>
+                Status: {{ commande.paymentStatus }}
+            {% endif %}
+        </div>
+        
+        <div class="barcode">
+            *{{ commande.id }}*
+        </div>
+        
+        <div class="footer">
+            <p><strong>Thank you for your order!</strong></p>
+            <p>Please keep this receipt for your records</p>
+            {% if commande.paymentMethod == 'CASH' and commande.paymentStatus == 'AWAITING_CASH' %}
+                <p style="margin-top: 10px; font-weight: bold;">
+                    ⚠️ Please pay at the counter
+                </p>
+            {% endif %}
+            <p style="margin-top: 15px; font-size: 10px;">
+                Printed: {{ "now"|date('m/d/Y H:i') }}
+            </p>
+        </div>
+    </div>
+    
+    <div class="action-buttons">
+        <a href="{{ path('app_customer_order_ticket_download', {id: commande.id}) }}" class="btn btn-success btn-lg mb-2">
+            📥 Download as PDF
+        </a>
+        <button onclick="window.print()" class="btn btn-primary btn-lg mb-2">
+            🖨️ Print Receipt
+        </button>
+        <a href="{{ path('app_customer_order_success', {id: commande.id}) }}" class="btn btn-outline-secondary btn-lg">
+            ← Back to Order
+        </a>
+    </div>
+    </div>
+</body>
+</html>

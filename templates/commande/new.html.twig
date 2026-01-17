@@ -1,13 +1,91 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}New Commande{% endblock %}
+{% block title %}Create New Order{% endblock %}
 
 {% block body %}
-<div class="container">
-    <h1>Create new Commande</h1>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="bi bi-plus-circle"></i> Create New Order</h4>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form, {'attr': {'class': 'needs-validation'}}) }}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold"><i class="bi bi-calendar-event"></i> Date & Time *</label>
+                            {{ form_widget(form.dateHeure, {'attr': {'class': 'form-control', 'type': 'datetime-local'}}) }}
+                            <small class="form-text text-muted">Select order date and time</small>
+                            {{ form_errors(form.dateHeure) }}
+                        </div>
 
-    {{ include('commande/_form.html.twig') }}
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold"><i class="bi bi-person"></i> Client *</label>
+                            {{ form_widget(form.client, {'attr': {'class': 'form-select'}}) }}
+                            <small class="form-text text-muted">Select customer</small>
+                            {{ form_errors(form.client) }}
+                        </div>
+                    </div>
 
-    <a href="{{ path('app_commande_index') }}">back to list</a>
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold"><i class="bi bi-info-circle"></i> Status *</label>
+                            <select name="{{ form.statut.vars.full_name }}" id="{{ form.statut.vars.id }}" class="form-select">
+                                <option value="PENDING">⏳ PENDING</option>
+                                <option value="CONFIRMED">✓ CONFIRMED</option>
+                                <option value="IN_PROGRESS">🍳 IN_PROGRESS</option>
+                                <option value="READY">✅ READY</option>
+                                <option value="SERVED">🍽️ SERVED</option>
+                                <option value="CANCELLED">❌ CANCELLED</option>
+                            </select>
+                            <small class="form-text text-muted">Select order status</small>
+                            {{ form_errors(form.statut) }}
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold"><i class="bi bi-currency-dollar"></i> Total Amount *</label>
+                            {{ form_widget(form.total, {'attr': {'class': 'form-control', 'placeholder': '0.00', 'step': '0.01'}}) }}
+                            <small class="form-text text-muted">Enter total amount</small>
+                            {{ form_errors(form.total) }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 mb-4">
+                            <label class="form-label fw-bold"><i class="bi bi-clock"></i> Estimated Time (minutes)</label>
+                            {{ form_widget(form.estimatedTime, {'attr': {'class': 'form-control', 'placeholder': 'Auto-calculated', 'min': '5', 'step': '5'}}) }}
+                            <small class="form-text text-muted">Leave empty to auto-calculate based on queue</small>
+                            {{ form_errors(form.estimatedTime) }}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold"><i class="bi bi-journal-text"></i> Notes / Chef Instructions</label>
+                        <textarea class="form-control" rows="3" placeholder="Add special instructions or notes for the chef..." name="notes"></textarea>
+                        <small class="form-text text-muted">Optional: Special requests or cooking instructions</small>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex gap-2 justify-content-between">
+                        <a href="{{ path('app_commande_index') }}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-check-circle"></i> Create Order
+                        </button>
+                    </div>
+                    
+                    {{ form_end(form) }}
+                </div>
+            </div>
+
+            <div class="text-center mt-3">
+                <small class="text-muted">* Required fields</small>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

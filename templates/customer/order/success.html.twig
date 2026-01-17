@@ -1,0 +1,146 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Order Placed - Restaurant{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            {% if commande.paymentMethod == 'CASH' %}
+                {# CASH Payment - Awaiting payment at counter #}
+                <div class="card shadow-lg border-warning">
+                    <div class="card-header bg-warning text-dark text-center py-4">
+                        <h2 class="mb-0">💵 Order Received!</h2>
+                    </div>
+                    <div class="card-body text-center py-5">
+                        <div class="mb-4">
+                            <div class="display-1 text-warning mb-3">⏳</div>
+                            <h3 class="mb-3">Please Pay at the Counter</h3>
+                            <p class="lead">Your order has been received and is waiting for payment.</p>
+                        </div>
+
+                        <div class="alert alert-warning border-warning">
+                            <h4 class="alert-heading">📌 Your Order Number:</h4>
+                            <h1 class="display-3 mb-0">#{{ commande.id }}</h1>
+                        </div>
+
+                        <div class="my-4">
+                            <p class="fs-5"><strong>Total to Pay:</strong> <span class="text-success fs-3">${{ commande.total|number_format(2, '.', ',') }}</span></p>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <h5>🏪 What to do next:</h5>
+                            <ol class="text-start mb-0">
+                                <li>Go to the cashier counter</li>
+                                <li>Provide your order number: <strong>#{{ commande.id }}</strong></li>
+                                <li>Pay the amount in cash</li>
+                                <li>Wait for your order to be prepared</li>
+                            </ol>
+                        </div>
+
+                        <div class="mt-4">
+                            <p class="text-muted">Order Status: <span class="badge bg-warning">{{ commande.statut }}</span></p>
+                            <p class="text-muted">Payment Status: <span class="badge bg-warning">{{ commande.paymentStatus }}</span></p>
+                        </div>
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="{{ path('app_customer_menu') }}" class="btn btn-primary">← Back to Menu</a>
+                    </div>
+                </div>
+
+            {% else %}
+                {# CARD Payment - Confirmed and paid #}
+                <div class="card shadow-lg border-success">
+                    <div class="card-header bg-success text-white text-center py-4">
+                        <h2 class="mb-0">✅ Order Confirmed!</h2>
+                    </div>
+                    <div class="card-body text-center py-5">
+                        <div class="mb-4">
+                            <div class="display-1 text-success mb-3">✓</div>
+                            <h3 class="mb-3">Payment Successful</h3>
+                            <p class="lead">Your order has been confirmed and sent to the kitchen.</p>
+                        </div>
+
+                        <div class="alert alert-success border-success">
+                            <h4 class="alert-heading">📌 Your Order Number:</h4>
+                            <h1 class="display-3 mb-0">#{{ commande.id }}</h1>
+                        </div>
+
+                        <div class="my-4">
+                            <p class="fs-5"><strong>Amount Paid:</strong> <span class="text-success fs-3">${{ commande.total|number_format(2, '.', ',') }}</span></p>
+                            <p class="text-muted">Payment Method: <span class="badge bg-primary">{{ commande.paymentMethod }}</span></p>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <h5>🍽️ What's next:</h5>
+                            <ul class="text-start mb-0">
+                                <li>Your order is being prepared by our chefs</li>
+                                <li>Keep your order number handy: <strong>#{{ commande.id }}</strong></li>
+                                <li>You'll be notified when it's ready for pickup</li>
+                            </ul>
+                        </div>
+
+                        <div class="mt-4">
+                            <p class="text-muted">Order Status: <span class="badge bg-success">{{ commande.statut }}</span></p>
+                            <p class="text-muted">Payment Status: <span class="badge bg-success">{{ commande.paymentStatus }}</span></p>
+                            <p class="text-muted small">Order placed: {{ commande.dateHeure|date('Y-m-d H:i') }}</p>
+                        </div>
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="{{ path('app_customer_menu') }}" class="btn btn-primary">← Back to Menu</a>
+                        <a href="{{ path('app_customer_order_show', {id: commande.id}) }}" class="btn btn-outline-primary">View Order Details</a>
+                    </div>
+                </div>
+            {% endif %}
+
+            {# Order Items Summary #}
+            <div class="card mt-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">📋 Order Items</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th class="text-center">Qty</th>
+                                    <th class="text-end">Price</th>
+                                    <th class="text-end">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ligne in commande.ligneCommandes %}
+                                    <tr>
+                                        <td>{{ ligne.plat.nomPlat }}</td>
+                                        <td class="text-center">{{ ligne.quantite }}</td>
+                                        <td class="text-end">${{ ligne.plat.prix|number_format(2, '.', ',') }}</td>
+                                        <td class="text-end">${{ (ligne.plat.prix * ligne.quantite)|number_format(2, '.', ',') }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                                    <td class="text-end"><strong>${{ commande.total|number_format(2, '.', ',') }}</strong></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            {# Action Buttons #}
+            <div class="d-grid gap-2 mt-4">
+                <a href="{{ path('app_customer_order_ticket', {id: commande.id}) }}" class="btn btn-primary btn-lg" target="_blank">
+                    🎫 View Receipt / Ticket
+                </a>
+                <a href="{{ path('app_customer_menu') }}" class="btn btn-outline-secondary">
+                    ← Back to Menu
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

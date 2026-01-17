@@ -1,0 +1,244 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}User Management{% endblock %}
+
+{% block body %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-people"></i> User Management</h1>
+        <a href="{{ path('app_user_new') }}" class="btn btn-success">
+            <i class="bi bi-person-plus"></i> Create New User
+        </a>
+    </div>
+
+    {% for message in app.flashes('success') %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle"></i> {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+
+    {% for message in app.flashes('error') %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle"></i> {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+
+    {# Tabs #}
+    <ul class="nav nav-tabs mb-3" id="userTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab">
+                <i class="bi bi-hourglass-split"></i> Pending Staff 
+                <span class="badge bg-warning text-dark">{{ pending_staff|length }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="staff-tab" data-bs-toggle="tab" data-bs-target="#staff" type="button" role="tab">
+                <i class="bi bi-person-badge"></i> Active Staff
+                <span class="badge bg-success">{{ active_staff|length }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="clients-tab" data-bs-toggle="tab" data-bs-target="#clients" type="button" role="tab">
+                <i class="bi bi-people"></i> Clients
+                <span class="badge bg-primary">{{ clients|length }}</span>
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="userTabContent">
+        {# Pending Staff Tab #}
+        <div class="tab-pane fade show active" id="pending" role="tabpanel">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="bi bi-hourglass-split"></i> Pending Staff Approval</h5>
+                    <small>These staff members are waiting for role assignment</small>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for user in pending_staff %}
+                                <tr>
+                                    <td><strong>#{{ user.id }}</strong></td>
+                                    <td>{{ user.fullName }}</td>
+                                    <td>{{ user.email }}</td>
+                                    <td><span class="badge bg-warning text-dark"><i class="bi bi-clock"></i> Pending Approval</span></td>
+                                    <td>
+                                        <a href="{{ path('app_user_edit', {id: user.id}) }}" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-pencil"></i> Assign Role
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">
+                                        No pending staff approvals
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Active Staff Tab #}
+        <div class="tab-pane fade" id="staff" role="tabpanel">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-person-badge"></i> Active Staff Members</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for user in active_staff %}
+                                <tr>
+                                    <td><strong>#{{ user.id }}</strong></td>
+                                    <td>{{ user.fullName }}</td>
+                                    <td>{{ user.email }}</td>
+                                    <td>
+                                        {% set role = user.roles[0] ?? 'ROLE_CLIENT' %}
+                                        {% if role == 'ROLE_ADMIN' %}
+                                            <span class="badge bg-danger"><i class="bi bi-shield-check"></i> Admin</span>
+                                        {% elseif role == 'ROLE_CASHIER' %}
+                                            <span class="badge bg-primary"><i class="bi bi-cash-stack"></i> Cashier</span>
+                                        {% elseif role == 'ROLE_CHEF' %}
+                                            <span class="badge bg-warning"><i class="bi bi-fire"></i> Chef</span>
+                                        {% elseif role == 'ROLE_WAITER' %}
+                                            <span class="badge bg-info"><i class="bi bi-person-badge"></i> Waiter</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ path('app_user_show', {id: user.id}) }}" class="btn btn-outline-primary" title="View">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{{ path('app_user_edit', {id: user.id}) }}" class="btn btn-outline-warning" title="Edit">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">
+                                        No active staff members
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Clients Tab #}
+        <div class="tab-pane fade" id="clients" role="tabpanel">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-people"></i> Client Accounts</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for user in clients %}
+                                <tr>
+                                    <td><strong>#{{ user.id }}</strong></td>
+                                    <td>{{ user.fullName }}</td>
+                                    <td>{{ user.email }}</td>
+                                    <td><span class="badge bg-success"><i class="bi bi-check-circle"></i> Active</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ path('app_user_show', {id: user.id}) }}" class="btn btn-outline-primary" title="View">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-outline-danger" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteModal{{ user.id }}">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+
+                                        {# Delete Modal #}
+                                        <div class="modal fade" id="deleteModal{{ user.id }}" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content">
+                                                    <div class="modal-header bg-danger text-white">
+                                                        <h5 class="modal-title"><i class="bi bi-exclamation-triangle"></i> Confirm Delete</h5>
+                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <p><strong>Delete {{ user.fullName }}?</strong></p>
+                                                        <p class="text-danger small mb-0">⚠️ This action cannot be undone!</p>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                        <form method="post" action="{{ path('app_user_delete', {id: user.id}) }}" style="display: inline;">
+                                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
+                                                            <button type="submit" class="btn btn-danger">
+                                                                <i class="bi bi-trash"></i> Delete
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">
+                                        No client accounts
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Initialize Bootstrap tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+{% endblock %}

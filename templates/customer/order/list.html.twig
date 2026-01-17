@@ -1,62 +1,89 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}My Orders - Restaurant{% endblock %}
+{% block title %}My Orders{% endblock %}
 
 {% block body %}
 <div class="container py-4">
-    <h1>📋 My Orders</h1>
-    <p class="text-muted">Track your order status here</p>
+    <h1>📦 My Orders</h1>
+    <p class="text-muted">View your order history</p>
 
-    <div class="row mt-4">
-        <!-- Order 1 -->
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Order #001</h5>
-                    <span class="badge bg-warning">Preparing</span>
-                </div>
-                <div class="card-body">
-                    <p><strong>Date:</strong> 2026-01-16 14:30</p>
-                    <p><strong>Total:</strong> $35.97</p>
-                    <hr>
-                    <h6>Items:</h6>
-                    <ul class="list-unstyled">
-                        <li>✓ Spaghetti Carbonara x2</li>
-                        <li>✓ Caesar Salad x1</li>
-                    </ul>
-                </div>
-                <div class="card-footer bg-light">
-                    <a href="{{ path('app_customer_order_show', {'id': 1}) }}" class="btn btn-sm btn-info">View Details</a>
-                </div>
-            </div>
+    {% if commandes is empty %}
+        <div class="alert alert-info text-center py-5">
+            <h4>No Orders Yet</h4>
+            <p>You haven't placed any orders yet.</p>
+            <a href="{{ path('app_customer_menu') }}" class="btn btn-primary">Browse Menu</a>
         </div>
+    {% else %}
+        <div class="row">
+            {% for commande in commandes %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <strong>Order #{{ commande.id }}</strong>
+                            {% if commande.statut == 'CONFIRMED' %}
+                                <span class="badge bg-success">{{ commande.statut }}</span>
+                            {% elseif commande.statut == 'IN_PROGRESS' %}
+                                <span class="badge bg-warning">{{ commande.statut }}</span>
+                            {% elseif commande.statut == 'READY' %}
+                                <span class="badge bg-info">{{ commande.statut }}</span>
+                            {% elseif commande.statut == 'SERVED' %}
+                                <span class="badge bg-secondary">{{ commande.statut }}</span>
+                            {% elseif commande.statut == 'CANCELLED' %}
+                                <span class="badge bg-danger">{{ commande.statut }}</span>
+                            {% else %}
+                                <span class="badge bg-warning">{{ commande.statut }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-2">
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar"></i> {{ commande.dateHeure|date('M d, Y - H:i') }}
+                                </small>
+                            </p>
+                            
+                            <div class="mb-3">
+                                <strong>Items:</strong>
+                                <ul class="list-unstyled mb-0 mt-2">
+                                    {% for ligne in commande.ligneCommandes|slice(0, 3) %}
+                                        <li class="small">
+                                            <span class="badge bg-light text-dark">{{ ligne.quantite }}x</span>
+                                            {{ ligne.plat.nomPlat }}
+                                        </li>
+                                    {% endfor %}
+                                    {% if commande.ligneCommandes|length > 3 %}
+                                        <li class="small text-muted">+ {{ commande.ligneCommandes|length - 3 }} more items...</li>
+                                    {% endif %}
+                                </ul>
+                            </div>
 
-        <!-- Order 2 -->
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Order #002</h5>
-                    <span class="badge bg-success">Delivered</span>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span><strong>Total:</strong></span>
+                                <span class="text-success fs-5"><strong>${{ commande.total|number_format(2, '.', ',') }}</strong></span>
+                            </div>
+
+                            <div class="mb-2">
+                                <small>
+                                    <strong>Payment:</strong> 
+                                    {% if commande.paymentMethod == 'CARD' %}
+                                        💳 Card
+                                    {% else %}
+                                        💵 Cash
+                                    {% endif %}
+                                    <span class="badge bg-{{ commande.paymentStatus == 'PAID' ? 'success' : 'warning' }}">
+                                        {{ commande.paymentStatus }}
+                                    </span>
+                                </small>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light">
+                            <a href="{{ path('app_customer_order_show', {id: commande.id}) }}" class="btn btn-sm btn-primary w-100">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <p><strong>Date:</strong> 2026-01-15 19:45</p>
-                    <p><strong>Total:</strong> $28.49</p>
-                    <hr>
-                    <h6>Items:</h6>
-                    <ul class="list-unstyled">
-                        <li>✓ Grilled Salmon x1</li>
-                        <li>✓ Caesar Salad x1</li>
-                    </ul>
-                </div>
-                <div class="card-footer bg-light">
-                    <a href="{{ path('app_customer_order_show', {'id': 2}) }}" class="btn btn-sm btn-info">View Details</a>
-                </div>
-            </div>
+            {% endfor %}
         </div>
-    </div>
-
-    <div class="mt-4">
-        <a href="{{ path('app_customer_menu') }}" class="btn btn-primary">← Back to Menu</a>
-    </div>
+    {% endif %}
 </div>
 {% endblock %}

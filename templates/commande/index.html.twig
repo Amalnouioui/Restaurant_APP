@@ -1,43 +1,246 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Commandes{% endblock %}
+{% block title %}Order Management - Kitchen{% endblock %}
 
 {% block body %}
-<div class="container">
-    <h1>Commandes</h1>
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>🍳 Kitchen - Order Management</h1>
+    </div>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>DateHeure</th>
-                <th>Statut</th>
-                <th>Total</th>
-                <th>Client</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for commande in commandes %}
-            <tr>
-                <td>{{ commande.id }}</td>
-                <td>{{ commande.dateHeure ? commande.dateHeure|date('Y-m-d H:i:s') : '' }}</td>
-                <td>{{ commande.statut }}</td>
-                <td>{{ commande.total }}</td>
-                <td>{{ commande.client.nom }} {{ commande.client.prenom }}</td>
-                <td>
-                    <a href="{{ path('app_commande_show', {'id': commande.id}) }}">show</a>
-                    <a href="{{ path('app_commande_edit', {'id': commande.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="6">no records found</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+    {# Filters #}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">🔍 Filters</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Status</option>
+                        <option value="PENDING" {{ current_status == 'PENDING' ? 'selected' : '' }}>⏳ PENDING</option>
+                        <option value="CONFIRMED" {{ current_status == 'CONFIRMED' ? 'selected' : '' }}>✓ CONFIRMED</option>
+                        <option value="IN_PROGRESS" {{ current_status == 'IN_PROGRESS' ? 'selected' : '' }}>🍳 IN_PROGRESS</option>
+                        <option value="READY" {{ current_status == 'READY' ? 'selected' : '' }}>✓ READY</option>
+                        <option value="SERVED" {{ current_status == 'SERVED' ? 'selected' : '' }}>🍽️ SERVED</option>
+                        <option value="CANCELLED" {{ current_status == 'CANCELLED' ? 'selected' : '' }}>❌ CANCELLED</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Order Number</label>
+                    <input type="number" name="order_number" class="form-control" placeholder="#123" value="{{ current_order_number }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Date</label>
+                    <input type="date" name="date" class="form-control" value="{{ current_date }}">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">Apply</button>
+                    <a href="{{ path('app_commande_index') }}" class="btn btn-outline-secondary">Clear</a>
+                </div>
+            </form>
+        </div>
+    </div>
 
-    <a href="{{ path('app_commande_new') }}">Create new</a>
+    {# Orders Table #}
+    <div class="card shadow-sm">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">Orders ({{ commandes|length }})</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive" style="max-height: 70vh; overflow-y: auto;">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light" style="position: sticky; top: 0; z-index: 10;">
+                        <tr>
+                            <th style="padding: 15px;">Order #</th>
+                            <th style="padding: 15px;">Date & Time</th>
+                            <th style="padding: 15px;">Client</th>
+                            <th style="padding: 15px;">Items</th>
+                            <th style="padding: 15px;">Total</th>
+                            <th style="padding: 15px;">Payment</th>
+                            <th style="padding: 15px;">Est. Time</th>
+                            <th style="padding: 15px;">Status</th>
+                            <th style="padding: 15px; width: 220px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for commande in commandes %}
+                        <tr style="height: 80px;">
+                            <td style="padding: 15px; vertical-align: middle;"><strong>#{{ commande.id }}</strong></td>
+                            <td style="padding: 15px; vertical-align: middle;">
+                                <small>{{ commande.dateHeure ? commande.dateHeure|date('M d, Y') : '' }}<br>
+                                {{ commande.dateHeure ? commande.dateHeure|date('H:i') : '' }}</small>
+                            </td>
+                            <td style="padding: 15px; vertical-align: middle;">{{ commande.client.nom }} {{ commande.client.prenom }}</td>
+                            <td style="padding: 15px; vertical-align: middle;" 
+                                {% if commande.ligneCommandes|length > 2 %}
+                                data-bs-toggle="tooltip" 
+                                data-bs-html="true"
+                                title="{% for ligne in commande.ligneCommandes %}{{ ligne.quantite }}x {{ ligne.plat.nomPlat }}{% if not loop.last %}<br>{% endif %}{% endfor %}"
+                                {% endif %}>
+                                <small>
+                                    {% for ligne in commande.ligneCommandes|slice(0, 2) %}
+                                        <div>{{ ligne.quantite }}x {{ ligne.plat.nomPlat }}</div>
+                                    {% endfor %}
+                                    {% if commande.ligneCommandes|length > 2 %}
+                                        <div class="text-muted" style="cursor: help;"><i class="bi bi-info-circle"></i> +{{ commande.ligneCommandes|length - 2 }} more...</div>
+                                    {% endif %}
+                                </small>
+                            </td>
+                            <td style="padding: 15px; vertical-align: middle;"><strong>${{ commande.total|number_format(2, '.', ',') }}</strong></td>
+                            <td style="padding: 15px; vertical-align: middle;">
+                                <span class="badge bg-{{ commande.paymentStatus == 'PAID' ? 'success' : 'warning' }}">
+                                    {{ commande.paymentMethod }}
+                                </span>
+                            </td>
+                            <td style="padding: 15px; vertical-align: middle;">
+                                <form method="post" action="{{ path('app_commande_update_estimated_time', {id: commande.id}) }}" class="d-flex align-items-center gap-1">
+                                    <input type="number" name="estimated_time" class="form-control form-control-sm" 
+                                           value="{{ commande.estimatedTime }}" 
+                                           min="5" step="5" style="width: 70px;"
+                                           title="Estimated time in minutes">
+                                    <button type="submit" class="btn btn-sm btn-outline-primary" title="Update" data-bs-toggle="tooltip">
+                                        <i class="bi bi-check"></i>
+                                    </button>
+                                </form>
+                                <small class="text-muted">min</small>
+                            </td>
+                            <td style="padding: 15px; vertical-align: middle;">
+                                <form method="post" action="{{ path('app_commande_update_status', {id: commande.id}) }}" class="d-inline">
+                                    <select name="status" class="form-select form-select-sm" onchange="if(confirm('Update order status?')) this.form.submit(); else this.value='{{ commande.statut }}';" 
+                                            style="min-width: 150px;">
+                                        <option value="PENDING" {{ commande.statut == 'PENDING' ? 'selected' : '' }}>⏳ PENDING</option>
+                                        <option value="CONFIRMED" {{ commande.statut == 'CONFIRMED' ? 'selected' : '' }}>✓ CONFIRMED</option>
+                                        <option value="IN_PROGRESS" {{ commande.statut == 'IN_PROGRESS' ? 'selected' : '' }}>🍳 IN_PROGRESS</option>
+                                        <option value="READY" {{ commande.statut == 'READY' ? 'selected' : '' }}>✅ READY</option>
+                                        <option value="SERVED" {{ commande.statut == 'SERVED' ? 'selected' : '' }}>🍽️ SERVED</option>
+                                        <option value="CANCELLED" {{ commande.statut == 'CANCELLED' ? 'selected' : '' }}>❌ CANCELLED</option>
+                                    </select>
+                                </form>
+                            </td>
+                            <td style="padding: 15px; vertical-align: middle;">
+                                <div class="btn-group btn-group-sm" role="group" style="gap: 5px;">
+                                    <a href="{{ path('app_commande_show', {id: commande.id}) }}" 
+                                       class="btn btn-info action-btn" 
+                                       title="View Details"
+                                       data-bs-toggle="tooltip"
+                                       style="transition: all 0.3s;">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <button type="button" 
+                                            class="btn btn-danger action-btn" 
+                                            title="Delete Order"
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#deleteModal{{ commande.id }}"
+                                            style="transition: all 0.3s;">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Delete Confirmation Modal -->
+                                <div class="modal fade" id="deleteModal{{ commande.id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-danger text-white">
+                                                <h5 class="modal-title">Confirm Delete</h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p class="mb-2"><strong>Are you sure you want to delete this order?</strong></p>
+                                                <div class="alert alert-warning">
+                                                    <strong>Order #{{ commande.id }}</strong><br>
+                                                    Date: {{ commande.dateHeure|date('M d, Y - H:i') }}<br>
+                                                    Total: ${{ commande.total|number_format(2, '.', ',') }}<br>
+                                                    Status: {{ commande.statut }}
+                                                </div>
+                                                <p class="text-danger small mb-0">⚠️ This action cannot be undone!</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <form method="post" action="{{ path('app_commande_delete', {id: commande.id}) }}" class="d-inline">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ commande.id) }}">
+                                                    <button type="submit" class="btn btn-danger">
+                                                        <i class="bi bi-trash"></i> Yes, Delete
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="9" class="text-center py-4">
+                                <div class="text-muted">
+                                    <h5>No orders found</h5>
+                                    <p>Try adjusting your filters</p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Toast Notification for Success Messages -->
+{% for message in app.flashes('success') %}
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div class="toast show align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="bi bi-check-circle"></i> {{ message }}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% for message in app.flashes('error') %}
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div class="toast show align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="bi bi-exclamation-triangle"></i> {{ message }}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<style>
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .btn-group-sm .btn {
+        margin-right: 5px;
+    }
+    
+    .btn-group-sm .btn:last-child {
+        margin-right: 0;
+    }
+</style>
+
+<script>
+    // Auto-hide toasts after 3 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        var toastElList = [].slice.call(document.querySelectorAll('.toast'));
+        toastElList.forEach(function(toastEl) {
+            setTimeout(function() {
+                var toast = bootstrap.Toast.getInstance(toastEl);
+                if (toast) {
+                    toast.hide();
+                }
+            }, 3000);
+        });
+    });
+</script>
 {% endblock %}

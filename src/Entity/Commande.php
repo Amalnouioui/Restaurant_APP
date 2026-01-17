@@ -25,6 +25,15 @@ class Commande
     #[ORM\Column(type: Types::FLOAT)]
     private ?float $total = null;
 
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $paymentMethod = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $paymentStatus = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $estimatedTime = null;
+
     #[ORM\ManyToOne(targetEntity: Client::class, inversedBy: 'commandes')]
     #[ORM\JoinColumn(name: 'idClient', referencedColumnName: 'idClient', nullable: false)]
     private ?Client $client = null;
@@ -83,6 +92,39 @@ class Commande
     public function setClient(?Client $client): static
     {
         $this->client = $client;
+        return $this;
+    }
+
+    public function getPaymentMethod(): ?string
+    {
+        return $this->paymentMethod;
+    }
+
+    public function setPaymentMethod(?string $paymentMethod): static
+    {
+        $this->paymentMethod = $paymentMethod;
+        return $this;
+    }
+
+    public function getPaymentStatus(): ?string
+    {
+        return $this->paymentStatus;
+    }
+
+    public function setPaymentStatus(?string $paymentStatus): static
+    {
+        $this->paymentStatus = $paymentStatus;
+        return $this;
+    }
+
+    public function getEstimatedTime(): ?int
+    {
+        return $this->estimatedTime;
+    }
+
+    public function setEstimatedTime(?int $estimatedTime): static
+    {
+        $this->estimatedTime = $estimatedTime;
         return $this;
     }
 
