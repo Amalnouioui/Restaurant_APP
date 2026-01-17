@@ -17,28 +17,54 @@ class CommandeController extends AbstractController
     #[Route('/', name: 'app_commande_index', methods: ['GET'])]
     public function index(Request $request, CommandeRepository $commandeRepository): Response
     {
+        $user = $this->getUser();
         $status = $request->query->get('status');
         $orderNumber = $request->query->get('order_number');
         $date = $request->query->get('date');
         
+        // Role-based filtering
+        $qb = $commandeRepository->createQueryBuilder('c');
+        
+        // Apply role-based filters
+        if ($user && $this->isGranted('ROLE_CASHIER') && !$this->isGranted('ROLE_ADMIN')) {
+            // Cashier sees PENDING and AWAITING_PAYMENT orders
+            $qb->where('c.statut IN (:cashier_statuses)')
+               ->setParameter('cashier_statuses', ['PENDING', 'AWAITING_PAYMENT']);
+        } elseif ($user && $this->isGranted('ROLE_CHEF') && !$this->isGranted('ROLE_ADMIN')) {
+            // Chef sees PAID orders (CONFIRMED, IN_PROGRESS)
+            $qb->where('c.paymentStatus = :paid')
+               ->andWhere('c.statut IN (:chef_statuses)')
+               ->setParameter('paid', 'PAID')
+               ->setParameter('chef_statuses', ['CONFIRMED', 'IN_PROGRESS']);
+        } elseif ($user && $this->isGranted('ROLE_WAITER') && !$this->isGranted('ROLE_ADMIN')) {
+            // Waiter sees READY orders
+            $qb->where('c.statut = :ready')
+               ->setParameter('ready', 'READY');
+        }
+        // Admin sees all orders (no additional filter)
+        
+        // Apply user filters
         if ($status) {
-            $commandes = $commandeRepository->findBy(['statut' => $status], ['dateHeure' => 'DESC']);
-        } elseif ($orderNumber) {
-            $commandes = $commandeRepository->findBy(['id' => $orderNumber]);
-        } elseif ($date) {
+            $qb->andWhere('c.statut = :status')
+               ->setParameter('status', $status);
+        }
+        
+        if ($orderNumber) {
+            $qb->andWhere('c.id = :id')
+               ->setParameter('id', $orderNumber);
+        }
+        
+        if ($date) {
             $startDate = new \DateTime($date . ' 00:00:00');
             $endDate = new \DateTime($date . ' 23:59:59');
-            $commandes = $commandeRepository->createQueryBuilder('c')
-                ->where('c.dateHeure BETWEEN :start AND :end')
-                ->setParameter('start', $startDate)
-                ->setParameter('end', $endDate)
-                ->orderBy('c.dateHeure', 'DESC')
-                ->getQuery()
-                ->getResult();
-        } else {
-            // Default: show all orders
-            $commandes = $commandeRepository->findBy([], ['dateHeure' => 'DESC']);
+            $qb->andWhere('c.dateHeure BETWEEN :start AND :end')
+               ->setParameter('start', $startDate)
+               ->setParameter('end', $endDate);
         }
+        
+        $commandes = $qb->orderBy('c.dateHeure', 'DESC')
+                        ->getQuery()
+                        ->getResult();
         
         return $this->render('commande/index.html.twig', [
             'commandes' => $commandes,

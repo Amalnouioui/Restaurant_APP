@@ -2,6 +2,13 @@ security:
     password_hashers:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
 
+    # Role hierarchy
+    role_hierarchy:
+        ROLE_ADMIN: [ROLE_CASHIER, ROLE_CHEF, ROLE_WAITER, ROLE_CLIENT]
+        ROLE_CASHIER: ROLE_CLIENT
+        ROLE_CHEF: ROLE_CLIENT
+        ROLE_WAITER: ROLE_CLIENT
+
     providers:
         app_user_provider:
             entity:
@@ -14,12 +21,28 @@ security:
             security: false
         main:
             lazy: true
-            security: false
+            provider: app_user_provider
+            user_checker: App\Security\UserChecker
+            form_login:
+                login_path: app_login
+                check_path: app_login
+                default_target_path: app_customer_menu
+                success_handler: App\Security\LoginSuccessHandler
+            logout:
+                path: app_logout
+                target: app_login
 
 
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+        - { path: ^/login, roles: PUBLIC_ACCESS }
+        - { path: ^/register, roles: PUBLIC_ACCESS }
+        - { path: ^/customer, roles: PUBLIC_ACCESS }
+        - { path: ^/user, roles: ROLE_ADMIN }
+        - { path: ^/client, roles: ROLE_ADMIN }
+        - { path: ^/plat, roles: ROLE_ADMIN }
+        - { path: ^/commande, roles: [ROLE_ADMIN, ROLE_CASHIER, ROLE_CHEF, ROLE_WAITER] }
+        - { path: ^/ligne, roles: ROLE_ADMIN }
+        - { path: ^/, roles: PUBLIC_ACCESS }
 
 when@test:
     security:

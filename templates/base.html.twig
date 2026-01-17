@@ -23,38 +23,90 @@
                 </button>
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav ms-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" href="/client/">Clients</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/plat/">Dishes</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/commande/">Orders</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/ligne/commande">Order Lines</a>
-                        </li>
-                        <li class="nav-item" id="customerNav" style="display:none;">
-                            <a class="nav-link" href="/customer/menu">🍽️ Menu</a>
-                        </li>
-                        <li class="nav-item" id="customerNav" style="display:none;">
-                            <a class="nav-link" href="/customer/order">📋 My Orders</a>
-                        </li>
-                        <li class="nav-item" id="customerNav" style="display:none;">
-                            <a class="nav-link" href="/customer/cart">🛒 Cart</a>
-                        </li>
-                        <li class="nav-item dropdown" id="userDropdown" style="display:none;">
-                            <a class="nav-link dropdown-toggle" href="#" id="userMenu" role="button" data-bs-toggle="dropdown">
-                                👤 <span id="userName">User</span>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="#" onclick="handleLogout()">Logout</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item" id="loginNav">
-                            <a class="nav-link" href="/login">Login</a>
-                        </li>
+                        {% if app.user %}
+                            {# Admin Menu - Only Users, Dishes, Orders #}
+                            {% if is_granted('ROLE_ADMIN') %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ path('app_user_index') }}">
+                                    <i class="bi bi-people"></i> Users
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ path('app_plat_index') }}">
+                                    <i class="bi bi-egg-fried"></i> Dishes
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ path('app_commande_index') }}">
+                                    <i class="bi bi-receipt"></i> Orders
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            {# Staff Menu - Only Orders (filtered by role) #}
+                            {% if (is_granted('ROLE_CASHIER') or is_granted('ROLE_CHEF') or is_granted('ROLE_WAITER')) and not is_granted('ROLE_ADMIN') %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ path('app_commande_index') }}">
+                                    <i class="bi bi-receipt"></i> 
+                                    {% if is_granted('ROLE_CASHIER') %}
+                                        Pending Orders
+                                    {% elseif is_granted('ROLE_CHEF') %}
+                                        Kitchen Orders
+                                    {% elseif is_granted('ROLE_WAITER') %}
+                                        Ready Orders
+                                    {% endif %}
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            {# Client Menu - Only Menu, My Orders, Cart #}
+                            {% if is_granted('ROLE_CLIENT') and not is_granted('ROLE_ADMIN') and not is_granted('ROLE_CASHIER') and not is_granted('ROLE_CHEF') and not is_granted('ROLE_WAITER') %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ path('app_customer_menu') }}">
+                                    <i class="bi bi-book"></i> Menu
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ path('app_customer_order_list') }}">
+                                    <i class="bi bi-list-check"></i> My Orders
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ path('app_customer_cart_view') }}">
+                                    <i class="bi bi-cart"></i> Cart
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            {# User Dropdown #}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-person-circle"></i> {{ app.user.fullName }}
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="{{ path('app_logout') }}">
+                                        <i class="bi bi-box-arrow-right"></i> Logout
+                                    </a></li>
+                                </ul>
+                            </li>
+                        {% else %}
+                            {# Guest Menu - Only Menu #}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ path('app_customer_menu') }}">
+                                    <i class="bi bi-book"></i> Menu
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ path('app_login') }}">
+                                    <i class="bi bi-box-arrow-in-right"></i> Login
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ path('app_register') }}">
+                                    <i class="bi bi-person-plus"></i> Register
+                                </a>
+                            </li>
+                        {% endif %}
                     </ul>
                 </div>
             </div>
@@ -69,39 +121,7 @@
         </footer>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-        <script>
-        function checkLogin() {
-            const user = JSON.parse(localStorage.getItem('user') || 'null');
-            
-            if (user && user.loggedIn) {
-                document.getElementById('loginNav').style.display = 'none';
-                document.getElementById('userDropdown').style.display = 'block';
-                document.getElementById('userName').textContent = user.name || user.email;
-                
-                // Show customer nav items
-                const customerNavs = document.querySelectorAll('#customerNav');
-                customerNavs.forEach(nav => nav.style.display = 'block');
-            } else {
-                document.getElementById('loginNav').style.display = 'block';
-                document.getElementById('userDropdown').style.display = 'none';
-                
-                // Hide customer nav items
-                const customerNavs = document.querySelectorAll('#customerNav');
-                customerNavs.forEach(nav => nav.style.display = 'none');
-            }
-        }
-
-        function handleLogout() {
-            localStorage.removeItem('user');
-            window.location.href = '/login';
-        }
-
-        // Check login on page load
-        document.addEventListener('DOMContentLoaded', checkLogin);
-        </script>
         
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <script>
             // Initialize Bootstrap tooltips
             document.addEventListener('DOMContentLoaded', function() {

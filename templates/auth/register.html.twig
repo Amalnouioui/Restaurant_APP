@@ -11,46 +11,51 @@
                     <h3 class="mb-0">👤 Create Account</h3>
                 </div>
                 <div class="card-body p-4">
-                    <form id="registerForm" onsubmit="handleRegister(event)">
+                    {% for message in app.flashes('error') %}
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i> {{ message }}
+                    </div>
+                    {% endfor %}
+
+                    <form method="post" action="{{ path('app_register') }}">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Account Type</label>
+                            <select name="account_type" class="form-select" required>
+                                <option value="">-- Select Account Type --</option>
+                                <option value="client">Client (Customer - Immediate Access)</option>
+                                <option value="staff">Staff (Requires Admin Approval)</option>
+                            </select>
+                            <small class="form-text text-muted">
+                                <strong>Client:</strong> Can order immediately<br>
+                                <strong>Staff:</strong> Admin must assign role before access
+                            </small>
+                        </div>
+
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">First Name</label>
-                                <input type="text" class="form-control" id="firstName" placeholder="John" required>
+                                <input type="text" class="form-control" name="prenom" value="{{ prenom ?? '' }}" placeholder="John" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Last Name</label>
-                                <input type="text" class="form-control" id="lastName" placeholder="Doe" required>
+                                <input type="text" class="form-control" name="nom" value="{{ nom ?? '' }}" placeholder="Doe" required>
                             </div>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">Email Address</label>
-                            <input type="email" class="form-control" id="email" placeholder="your@email.com" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Phone Number</label>
-                            <input type="tel" class="form-control" id="phone" placeholder="+1 (555) 123-4567" required>
+                            <input type="email" class="form-control" name="email" value="{{ email ?? '' }}" placeholder="your@email.com" required>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">Password</label>
-                            <input type="password" class="form-control" id="password" placeholder="Minimum 6 characters" required>
+                            <input type="password" class="form-control" name="password" placeholder="Minimum 6 characters" required>
                             <small class="text-muted">Must be at least 6 characters</small>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">Confirm Password</label>
-                            <input type="password" class="form-control" id="confirmPassword" placeholder="Re-enter password" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="terms" required>
-                                <label class="form-check-label" for="terms">
-                                    I agree to the Terms and Conditions
-                                </label>
-                            </div>
+                            <input type="password" class="form-control" name="confirm_password" placeholder="Re-enter password" required>
                         </div>
 
                         <div class="d-grid gap-2">
@@ -68,66 +73,4 @@
         </div>
     </div>
 </div>
-
-<script>
-function handleRegister(event) {
-    event.preventDefault();
-    
-    const firstName = document.getElementById('firstName').value;
-    const lastName = document.getElementById('lastName').value;
-    const email = document.getElementById('email').value;
-    const phone = document.getElementById('phone').value;
-    const password = document.getElementById('password').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
-    const terms = document.getElementById('terms').checked;
-
-    // Validation
-    if (!email || !password || password.length < 6) {
-        alert('Please fill all fields correctly. Password must be at least 6 characters.');
-        return;
-    }
-
-    if (password !== confirmPassword) {
-        alert('Passwords do not match!');
-        return;
-    }
-
-    if (!terms) {
-        alert('You must accept the terms and conditions.');
-        return;
-    }
-
-    // Store user in localStorage
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    
-    // Check if email already exists
-    if (users.some(u => u.email === email)) {
-        alert('This email is already registered!');
-        return;
-    }
-
-    // Add new user
-    users.push({
-        email: email,
-        firstName: firstName,
-        lastName: lastName,
-        phone: phone,
-        password: password, // In real app, never store plain passwords!
-        registeredAt: new Date().toISOString()
-    });
-
-    localStorage.setItem('users', JSON.stringify(users));
-
-    // Auto-login
-    localStorage.setItem('user', JSON.stringify({
-        email: email,
-        name: firstName + ' ' + lastName,
-        loggedIn: true,
-        loginTime: new Date().toISOString()
-    }));
-
-    alert('Account created successfully!');
-    window.location.href = "{{ path('app_customer_menu') }}";
-}
-</script>
 {% endblock %}
