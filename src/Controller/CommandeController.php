@@ -114,6 +114,8 @@ class CommandeController extends AbstractController
     {
         if ($this->isCsrfTokenValid('delete'.$commande->getId(), $request->getPayload()->get('_token'))) {
             $orderId = $commande->getId();
+            
+            // Walk-in orders are permanently deleted
             $entityManager->remove($commande);
             $entityManager->flush();
             

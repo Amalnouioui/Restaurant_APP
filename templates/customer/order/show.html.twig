@@ -111,37 +111,59 @@
                 <div class="card-body">
                     <div class="timeline">
                         {% set statuses = ['PENDING', 'CONFIRMED', 'IN_PROGRESS', 'READY', 'SERVED'] %}
-                        {% set statusReached = false %}
+                        {% set statusOrder = {
+                            'PENDING': 0,
+                            'AWAITING_PAYMENT': 0,
+                            'CONFIRMED': 1,
+                            'IN_PROGRESS': 2,
+                            'READY': 3,
+                            'SERVED': 4,
+                            'CANCELLED': -1
+                        } %}
+                        {% set currentStatusIndex = statusOrder[commande.statut] ?? -1 %}
                         
-                        {% for status in statuses %}
-                            {% if not statusReached %}
-                                {% if commande.statut == status %}
-                                    {% set statusReached = true %}
-                                    <div class="timeline-item mb-3">
-                                        <div class="d-flex align-items-center">
-                                            <div class="timeline-marker bg-warning text-dark rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                                                ⏳
-                                            </div>
-                                            <div class="ms-3">
-                                                <h6 class="mb-0">{{ status }}</h6>
-                                                <p class="text-muted small mb-0">Current status</p>
-                                            </div>
+                        {% for index, status in statuses %}
+                            {% if currentStatusIndex == -1 %}
+                                {# Order is cancelled - show all as incomplete #}
+                                <div class="timeline-item mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="timeline-marker bg-secondary rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                            •
+                                        </div>
+                                        <div class="ms-3">
+                                            <h6 class="mb-0 text-muted">{{ status }}</h6>
+                                            <p class="text-muted small mb-0">Pending</p>
                                         </div>
                                     </div>
-                                {% else %}
-                                    <div class="timeline-item mb-3">
-                                        <div class="d-flex align-items-center">
-                                            <div class="timeline-marker bg-success text-white rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                                                ✓
-                                            </div>
-                                            <div class="ms-3">
-                                                <h6 class="mb-0">{{ status }}</h6>
-                                                <p class="text-muted small mb-0">Completed</p>
-                                            </div>
+                                </div>
+                            {% elseif index < currentStatusIndex %}
+                                {# Status has been completed #}
+                                <div class="timeline-item mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="timeline-marker bg-success text-white rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                            ✓
+                                        </div>
+                                        <div class="ms-3">
+                                            <h6 class="mb-0">{{ status }}</h6>
+                                            <p class="text-success small mb-0">Completed</p>
                                         </div>
                                     </div>
-                                {% endif %}
+                                </div>
+                            {% elseif index == currentStatusIndex %}
+                                {# Current status #}
+                                <div class="timeline-item mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="timeline-marker bg-success text-white rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                            ✓
+                                        </div>
+                                        <div class="ms-3">
+                                            <h6 class="mb-0 text-success">{{ status }}</h6>
+                                            <p class="text-success small mb-0">Completed</p>
+                                        </div>
+                                    </div>
+                                </div>
                             {% else %}
+                                {# Status not reached yet #}
                                 <div class="timeline-item mb-3">
                                     <div class="d-flex align-items-center">
                                         <div class="timeline-marker bg-secondary rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
@@ -155,6 +177,12 @@
                                 </div>
                             {% endif %}
                         {% endfor %}
+                        
+                        {% if commande.statut == 'CANCELLED' %}
+                            <div class="alert alert-danger mt-3" role="alert">
+                                <i class="bi bi-x-circle"></i> This order has been cancelled
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>

@@ -29,14 +29,18 @@ final class OrderController extends AbstractController
         
         $commandes = [];
         if ($client) {
-            // For walk-in customers, filter by session ID
+            // For walk-in customers, hide SERVED and CANCELLED orders
             if ($user->getEmail() === 'walkin@restaurant.local') {
-                $commandes = $commandeRepository->findBy(
-                    ['client' => $client],
-                    ['dateHeure' => 'DESC']
-                );
+                $qb = $commandeRepository->createQueryBuilder('c')
+                    ->where('c.client = :client')
+                    ->andWhere('c.statut NOT IN (:hidden_statuses)')
+                    ->setParameter('client', $client)
+                    ->setParameter('hidden_statuses', ['SERVED', 'CANCELLED'])
+                    ->orderBy('c.dateHeure', 'DESC');
+                
+                $commandes = $qb->getQuery()->getResult();
             } else {
-                // For regular clients, show all their orders
+                // For regular clients, show all their orders (full history)
                 $commandes = $commandeRepository->findBy(
                     ['client' => $client],
                     ['dateHeure' => 'DESC']
